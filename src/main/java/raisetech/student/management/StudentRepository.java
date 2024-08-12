@@ -23,5 +23,5 @@ public interface StudentRepository {
 
 //  課題用
   @Select("SELECT * FROM student")
-  List<Student> getAllStudents();
+  List<Student> getStudents();
 }

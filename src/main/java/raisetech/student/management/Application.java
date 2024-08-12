@@ -45,8 +45,8 @@ public class Application {
 
 //	課題用：全生徒の情報取得
 	@GetMapping("/allStudents")
-	public String getAllStudents() {
-		List<Student> students = studentRepository.getAllStudents();
+	public String getStudents() {
+		List<Student> students = studentRepository.getStudents();
 		String result = "";
 		for (Student student : students) {
 			result += student.getName() + " " + student.getAge() + "歳\n";
