@@ -44,7 +44,7 @@ public class Application {
 	}
 
 //	課題用：全生徒の情報取得
-	@GetMapping("/allStudents")
+	@GetMapping("/students")
 	public String getStudents() {
 		List<Student> students = studentRepository.getStudents();
 		String result = "";
