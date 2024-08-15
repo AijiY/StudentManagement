@@ -25,9 +25,11 @@ public class Application {
 		return studentRepository.search();
 	}
 
+
 	@GetMapping("/studentCourseList")
 	public List<StudentCourse> getStudentCourseList() {
 		return studentCourseRepository.search();
+
 	}
 
 }
