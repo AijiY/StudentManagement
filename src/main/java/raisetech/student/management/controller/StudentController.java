@@ -2,6 +2,7 @@ package raisetech.student.management.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.controller.converter.StudentConverter;
@@ -23,16 +24,24 @@ public class StudentController {
   }
 
   @GetMapping("/studentList")
-  public List<StudentDetail> getStudentList() {
+  public String getStudentList(Model model) {
     List<Student> students = service.searchStudentList();
     List<StudentCourse> studentCourses = service.searchStudentCourseList();
 
-    return converter.convertStudentDetails(students, studentCourses);
+    List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentCourses);
+    model.addAttribute("studentList", studentDetails);
+
+    return "studentList"; // ここでThymeleafテンプレートを返す
   }
 
   @GetMapping("/studentCourseList")
   public List<StudentCourse> getStudentCourseList() {
     return service.searchStudentCourseList();
+  }
+
+  @GetMapping("/test")
+  public String testPage() {
+    return "test"; // test.html を返す
   }
 
 }
