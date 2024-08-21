@@ -1,6 +1,7 @@
 package raisetech.student.management.repository;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import raisetech.student.management.data.Student;
@@ -20,5 +21,18 @@ public interface StudentRepository {
 
   @Select("SELECT * FROM students_courses")
   List<StudentCourse> searchStudentCourse();
+
+//  もっとも大きいidを取得
+  @Select("SELECT MAX(id) FROM students")
+  int searchMaxStudentId();
+
+  @Select("SELECT MAX(id) FROM students_courses")
+  int searchMaxCourseId();
+
+  @Insert("INSERT INTO students VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{livingArea}, #{age}, #{gender}, #{remark}, false)")
+  void insertStudent(Student student);
+
+  @Insert("INSERT INTO students_courses VALUES (#{id}, #{studentId}, #{courseName}, #{startDate}, #{endDueDate})")
+  void insertStudentCourse(StudentCourse studentCourse);
 }
 
