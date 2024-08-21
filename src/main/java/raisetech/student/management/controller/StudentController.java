@@ -27,15 +27,15 @@ public class StudentController {
     this.converter = converter;
   }
 
-  @GetMapping("/studentList")
+  @GetMapping("/students")
   public String getStudentList(Model model) {
     List<Student> students = service.searchStudentList();
     List<StudentCourse> studentCourses = service.searchStudentCourseList();
 
     List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentCourses);
-    model.addAttribute("studentList", studentDetails);
+    model.addAttribute("students", studentDetails);
 
-    return "studentList"; // ここでThymeleafテンプレートを返す
+    return "students"; // ここでThymeleafテンプレートを返す
   }
 
   @GetMapping("/newStudent")
@@ -45,13 +45,13 @@ public class StudentController {
     studentDetail.getStudentCourseList().add(new StudentCourse());
 
     model.addAttribute("studentDetail", studentDetail);
-    return "registerStudent";
+    return "student";
   }
 
-  @PostMapping("/registerStudent")
+  @PostMapping("/student")
   public String registerStudent(@ModelAttribute StudentDetail studentDetail, BindingResult result) {
     if (result.hasErrors()) {
-      return "registerStudent";
+      return "student";
     }
 
 //    新規の受講生情報を登録する処理を実施する
@@ -60,7 +60,7 @@ public class StudentController {
 //    コース情報も一緒に登録できるように実装する（コースは単体）
     service.registerStudentCourse(studentDetail);
 
-    return "redirect:/studentList";
+    return "redirect:/students";
   }
 
 }

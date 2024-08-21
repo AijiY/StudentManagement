@@ -29,6 +29,10 @@ public interface StudentRepository {
   @Select("SELECT MAX(id) FROM students_courses")
   int searchMaxCourseId();
 
+//  受講生名からidを取得
+  @Select("SELECT id FROM students WHERE name = #{name}")
+  int searchStudentIdByName(String name);
+
   @Insert("INSERT INTO students VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{livingArea}, #{age}, #{gender}, #{remark}, false)")
   void insertStudent(Student student);
 

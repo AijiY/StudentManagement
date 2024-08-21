@@ -21,7 +21,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr th:each="studentDetail : ${studentList}">
+      <tr th:each="studentDetail : ${students}">
         <td th:text="${studentDetail.student.id}">1</td>
         <td th:text="${studentDetail.student.name}">山田太郎</td>
         <td th:text="${studentDetail.student.kanaName}">ヤマダタロウ</td>

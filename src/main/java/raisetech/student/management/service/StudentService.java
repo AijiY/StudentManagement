@@ -28,17 +28,13 @@ public class StudentService {
   }
 
   public void registerStudent(Student student) {
-//    idを自動採番
-    student.setId(repository.searchMaxStudentId() + 1);
     repository.insertStudent(student);
   }
 
   public void registerStudentCourse(StudentDetail studentDetail) {
     StudentCourse studentCourse = studentDetail.getStudentCourseList().get(0);
-//    idを自動採番
-    studentCourse.setId(repository.searchMaxCourseId() + 1);
 //    studentIdを受講生情報のidに設定
-    studentCourse.setStudentId(studentDetail.getStudent().getId());
+    studentCourse.setStudentId(repository.searchStudentIdByName(studentDetail.getStudent().getName()));
 //    startDateを本日に設定
     studentCourse.setStartDate(LocalDate.now());
 //    endDueDateを開始日から16週間後に設定
