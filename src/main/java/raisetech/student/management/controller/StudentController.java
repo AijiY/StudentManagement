@@ -58,7 +58,7 @@ public class StudentController {
     service.registerStudent(studentDetail.getStudent());
 
 //    コース情報も一緒に登録できるように実装する（コースは単体）
-    service.registerStudentCourse(studentDetail);
+    service.registerStudentCourse(studentDetail.getStudentCourseList().get(0));
 
     return "redirect:/students";
   }

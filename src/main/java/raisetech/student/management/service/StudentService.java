@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
-import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.repository.StudentRepository;
 
 @Service
@@ -31,10 +30,9 @@ public class StudentService {
     repository.insertStudent(student);
   }
 
-  public void registerStudentCourse(StudentDetail studentDetail) {
-    StudentCourse studentCourse = studentDetail.getStudentCourseList().get(0);
-//    studentIdを受講生情報のidに設定
-    studentCourse.setStudentId(repository.searchStudentIdByName(studentDetail.getStudent().getName()));
+  public void registerStudentCourse(StudentCourse studentCourse) {
+//    studentIdを最新登録のものに設定
+    studentCourse.setStudentId(repository.searchMaxStudentId());
 //    startDateを本日に設定
     studentCourse.setStartDate(LocalDate.now());
 //    endDueDateを開始日から16週間後に設定
