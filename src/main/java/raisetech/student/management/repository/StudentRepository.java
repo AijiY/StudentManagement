@@ -1,8 +1,11 @@
 package raisetech.student.management.repository;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 
@@ -20,5 +23,34 @@ public interface StudentRepository {
 
   @Select("SELECT * FROM students_courses")
   List<StudentCourse> searchStudentCourse();
+
+//  もっとも大きいidを取得
+  @Select("SELECT MAX(id) FROM students")
+  int searchMaxStudentId();
+
+  @Select("SELECT MAX(id) FROM students_courses")
+  int searchMaxCourseId();
+
+//  受講生名からidを取得
+  @Select("SELECT id FROM students WHERE name = #{name}")
+  int searchStudentIdByName(String name);
+
+  @Select("SELECT * FROM students WHERE id = #{id}")
+  Student searchStudentById(int id);
+
+  @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
+  List<StudentCourse> searchStudentCoursesByStudentId(int studentId);
+
+  @Insert("INSERT INTO students VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{livingArea}, #{age}, #{gender}, #{remark}, #{isDeleted})")
+  @Options(useGeneratedKeys = true, keyProperty = "id")
+  void insertStudent(Student student);
+
+  @Insert("INSERT INTO students_courses VALUES (#{id}, #{studentId}, #{courseName}, #{startDate}, #{endDueDate})")
+  @Options(useGeneratedKeys = true, keyProperty = "id")
+  void insertStudentCourse(StudentCourse studentCourse);
+
+  @Update("UPDATE students SET name = #{name}, kana_name = #{kanaName}, nickname = #{nickname}, email = #{email}, "
+      + "living_area = #{livingArea}, age = #{age}, gender = #{gender}, remark = #{remark} WHERE id = #{id}")
+  void updateStudent(Student student);
 }
 
