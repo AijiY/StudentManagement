@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
@@ -33,7 +34,7 @@ public class StudentController {
     List<StudentCourse> studentCourses = service.searchStudentCourseList();
 
     List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentCourses);
-    model.addAttribute("students", studentDetails);
+    model.addAttribute("studentDetails", studentDetails);
 
     return "students"; // ここでThymeleafテンプレートを返す
   }
@@ -45,22 +46,40 @@ public class StudentController {
     studentDetail.getStudentCourseList().add(new StudentCourse());
 
     model.addAttribute("studentDetail", studentDetail);
-    return "student";
+    return "registerStudent";
   }
 
-  @PostMapping("/student")
+  @GetMapping("/student")
+  public String updateStudent(@RequestParam int id, Model model) {
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(service.searchStudentById(id));
+    studentDetail.setStudentCourseList(service.searchStudentCoursesByStudentId(id));
+
+    model.addAttribute("studentDetail", studentDetail);
+    return "updateStudent";
+  }
+
+  @PostMapping("/registerStudent")
   public String registerStudent(@ModelAttribute StudentDetail studentDetail, BindingResult result) {
     if (result.hasErrors()) {
-      return "student";
+      return "registerStudent";
     }
 
 //    新規の受講生情報を登録する処理を実施する
-    service.registerStudent(studentDetail.getStudent());
-
-//    コース情報も一緒に登録できるように実装する（コースは単体）
-    service.registerStudentCourse(studentDetail.getStudentCourseList().get(0));
+    service.registerStudent(studentDetail);
 
     return "redirect:/students";
   }
 
+  @PostMapping("/updateStudent")
+  public String updateStudent(@ModelAttribute StudentDetail studentDetail, @RequestParam int id, BindingResult result) {
+    if (result.hasErrors()) {
+      return "updateStudent";
+    }
+
+    studentDetail.getStudent().setId(id);
+    service.updateStudent(studentDetail);
+
+    return "redirect:/students";
+  }
 }

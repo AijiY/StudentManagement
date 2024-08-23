@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>受講生登録</h1>
-<form th:action="@{/student}" th:object="${studentDetail}" method="post">
+<form th:action="@{/registerStudent}" th:object="${studentDetail}" method="post">
   <div>
     <label for="name">名前：</label>
     <input type="text" id="name" th:field="*{student.name}" required>
@@ -48,10 +48,6 @@
       <option value="Rubyコース">Rubyコース</option>
       <option value="Pythonコース">Pythonコース</option>
     </select>
-  </div>
-  <div>
-    <label for="remark">備考：</label>
-    <textarea id="remark" rows="4" cols="25" th:field="*{student.remark}"></textarea>
   </div>
   <div>
     <button type="submit">登録</button>
