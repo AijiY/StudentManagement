@@ -8,8 +8,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
@@ -49,8 +49,8 @@ public class StudentController {
     return "registerStudent";
   }
 
-  @GetMapping("/student")
-  public String updateStudent(@RequestParam int id, Model model) {
+  @GetMapping("/student/{id}")
+  public String updateStudent(@PathVariable int id, Model model) {
     StudentDetail studentDetail = new StudentDetail();
     studentDetail.setStudent(service.searchStudentById(id));
     studentDetail.setStudentCourseList(service.searchStudentCoursesByStudentId(id));
@@ -71,8 +71,8 @@ public class StudentController {
     return "redirect:/students";
   }
 
-  @PostMapping("/updateStudent")
-  public String updateStudent(@ModelAttribute StudentDetail studentDetail, @RequestParam int id, BindingResult result) {
+  @PostMapping("/updateStudent/{id}")
+  public String updateStudent(@ModelAttribute StudentDetail studentDetail, @PathVariable int id, BindingResult result) {
     if (result.hasErrors()) {
       return "updateStudent";
     }
@@ -82,4 +82,5 @@ public class StudentController {
 
     return "redirect:/students";
   }
+
 }

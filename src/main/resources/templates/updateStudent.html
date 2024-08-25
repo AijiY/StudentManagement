@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>受講生情報更新</h1>
-<form th:action="@{/updateStudent(id=${studentDetail.student.id})}" th:object="${studentDetail}" method="post">
+<form th:action="@{/updateStudent/{id}(id=${studentDetail.student.id})}" th:object="${studentDetail}" method="post">
   <div>
     <label for="name">名前：</label>
     <input type="text" id="name" th:field="*{student.name}" required>
@@ -42,6 +42,10 @@
   <div>
     <label for="remark">備考：</label>
     <textarea id="remark" rows="4" cols="25" th:field="*{student.remark}"></textarea>
+  </div>
+  <div>
+    <label>退会済</label>
+    <input type="checkbox" th:field="*{student.isDeleted}">
   </div>
   <div>
     <button type="submit">更新</button>
