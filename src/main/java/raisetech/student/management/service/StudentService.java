@@ -41,7 +41,7 @@ public class StudentService {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
 //    isDeletedをfalseに設定
-    student.setDeleted(false);
+    student.setIsDeleted(false);
     repository.insertStudent(student);
 
 //    ②コース情報を登録
