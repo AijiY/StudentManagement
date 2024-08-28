@@ -17,7 +17,7 @@ import raisetech.student.management.data.StudentCourse;
 @Mapper
 public interface StudentRepository {
   @Select("SELECT * FROM students "
-      + "WHERE is_deleted = 0 "
+      + "WHERE deleted = 0 "
       + "ORDER BY id")
   List<Student> searchStudent();
 
@@ -41,7 +41,7 @@ public interface StudentRepository {
   @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
   List<StudentCourse> searchStudentCoursesByStudentId(int studentId);
 
-  @Insert("INSERT INTO students VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{livingArea}, #{age}, #{gender}, #{remark}, #{isDeleted})")
+  @Insert("INSERT INTO students VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{livingArea}, #{age}, #{gender}, #{remark}, #{deleted})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void insertStudent(Student student);
 
@@ -50,7 +50,7 @@ public interface StudentRepository {
   void insertStudentCourse(StudentCourse studentCourse);
 
   @Update("UPDATE students SET name = #{name}, kana_name = #{kanaName}, nickname = #{nickname}, email = #{email}, "
-      + "living_area = #{livingArea}, age = #{age}, gender = #{gender}, remark = #{remark}, is_deleted = #{isDeleted} WHERE id = #{id}")
+      + "living_area = #{livingArea}, age = #{age}, gender = #{gender}, remark = #{remark}, deleted = #{deleted} WHERE id = #{id}")
   void updateStudent(Student student);
 }
 
