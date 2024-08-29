@@ -10,6 +10,10 @@ import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.repository.StudentRepository;
 
+/**
+ * 受講生情報を扱うサービス
+ * 検索や登録、更新などを行う
+ */
 @Service
 public class StudentService {
 
@@ -36,6 +40,11 @@ public class StudentService {
     return repository.searchStudentCoursesByStudentId(studentId);
   }
 
+  /**
+   * 受講生情報を新規登録
+   * 初期コース情報も同時に登録する
+   * @param studentDetail（受講生情報＋コース情報）
+   */
   @Transactional
   public void registerStudent(StudentDetail studentDetail) {
 //    ①受講生情報を登録
@@ -45,8 +54,8 @@ public class StudentService {
     repository.insertStudent(student);
 
 //    ②コース情報を登録
-    StudentCourse studentCourse = studentDetail.getStudentCourseList().get(0);
-//    studentIdを最新登録のものに設定
+    StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
+//    studentIdを登録した受講生のidに設定
     studentCourse.setStudentId(studentDetail.getStudent().getId());
 //    startDateを本日に設定
     studentCourse.setStartDate(LocalDate.now());
