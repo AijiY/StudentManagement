@@ -23,12 +23,10 @@ public class StudentConverter {
       List<StudentCourse> studentCourses) {
     List<StudentDetail> studentDetails = new ArrayList<>();
     students.forEach(student -> {
-      StudentDetail studentDetail = new StudentDetail();
-      studentDetail.setStudent(student);
       List<StudentCourse> convertStudentCourses = studentCourses.stream()
           .filter(studentCourse -> student.getId() == studentCourse.getStudentId())
           .collect(Collectors.toList());
-      studentDetail.setStudentCourses(convertStudentCourses);
+      StudentDetail studentDetail = new StudentDetail(student, convertStudentCourses);
       studentDetails.add(studentDetail);
     });
     return studentDetails;

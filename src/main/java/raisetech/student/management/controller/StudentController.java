@@ -1,10 +1,8 @@
 package raisetech.student.management.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,17 +44,6 @@ public class StudentController {
     return studentDetails;
   }
 
-//  Restへ未移行
-  @GetMapping("/newStudent")
-  public String newStudent(Model model) {
-    StudentDetail studentDetail = new StudentDetail();
-    studentDetail.setStudentCourses(new ArrayList<>());
-    studentDetail.getStudentCourses().add(new StudentCourse());
-
-    model.addAttribute("studentDetail", studentDetail);
-    return "registerStudent";
-  }
-
   /**
    * 受講生検索（単一idに基づく）
    * @param id
@@ -64,9 +51,9 @@ public class StudentController {
    */
   @GetMapping("/student/{id}")
   public StudentDetail getStudent(@PathVariable int id) {
-    StudentDetail studentDetail = new StudentDetail();
-    studentDetail.setStudent(service.searchStudentById(id));
-    studentDetail.setStudentCourses(service.searchStudentCoursesByStudentId(id));
+    Student student = service.searchStudentById(id);
+    List<StudentCourse> studentCourses = service.searchStudentCoursesByStudentId(id);
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
 
     return studentDetail;
   }
