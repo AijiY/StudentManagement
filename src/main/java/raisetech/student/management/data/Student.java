@@ -15,14 +15,8 @@ public class Student {
   private int age;
   private String gender;
   private String remark;
-  private boolean isDeleted;
+  private boolean deleted;
 
-  public boolean getIsDeleted() {
-    return isDeleted;
-  }
 
-  public void setIsDeleted(boolean isDeleted) {
-    this.isDeleted = isDeleted;
-  }
 
 }
