@@ -74,9 +74,7 @@ public class StudentController {
   public ResponseEntity<StudentDetail> registerStudent(@RequestBody StudentDetail studentDetail) {
     service.registerStudent(studentDetail);
 
-    studentDetail.getStudentCourses().forEach(studentCourse -> {
-      studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId()));
-    });
+    studentDetail.getStudentCourses().forEach(studentCourse -> studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId())));
     return ResponseEntity.ok(studentDetail);
   }
 
