@@ -20,8 +20,24 @@ public class Student {
   private boolean deleted;
 
 //  @Insert用のコンストラクタ
+  public Student(String name, String kanaName, String nickname, String email,
+      String livingArea, int age, String gender, String remark) {
+    this.id = 0; // Insert時にAUTO_INCREMENTで設定される
+    this.name = name;
+    this.kanaName = kanaName;
+    this.nickname = nickname;
+    this.email = email;
+    this.livingArea = livingArea;
+    this.age = age;
+    this.gender = gender;
+    this.remark = remark;
+    this.deleted = false; // デフォルトはfalse
+  }
+
+  // デフォルトコンストラクタ（@RequestBodyで必要）
   public Student() {
-    this.id = 0;
+    this.id = 0; // デフォルト値
+    this.deleted = false; // デフォルト値
   }
 
 }

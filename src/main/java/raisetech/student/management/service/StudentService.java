@@ -1,6 +1,5 @@
 package raisetech.student.management.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,19 +92,7 @@ public class StudentService {
 
 //    ②コース情報を登録
     StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
-    initStudentCourse(studentCourse, student.getId());
     repository.insertStudentCourse(studentCourse);
-  }
-
-  /**
-   * 受講生の初期コース情報を設定
-   * @param studentCourse:初期コース情報、元はコースidのみ登録済み
-   * @param studentId:受講生ID
-   */
-  private void initStudentCourse(StudentCourse studentCourse, int studentId) {
-    studentCourse.setStudentId(studentId);
-    studentCourse.setStartDate(LocalDate.now());
-    studentCourse.setEndDueDate(studentCourse.getStartDate().plusWeeks(16));
   }
 
   @Transactional
@@ -117,7 +104,6 @@ public class StudentService {
 
   @Transactional
   public void registerStudentCourse(StudentCourse studentCourse) {
-    initStudentCourse(studentCourse, studentCourse.getStudentId());
     repository.insertStudentCourse(studentCourse);
   }
 

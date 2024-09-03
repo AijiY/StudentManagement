@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Course;
@@ -67,11 +68,13 @@ public class StudentController {
 
   /**
    * 受講生登録
-   * @param studentDetail
+   * @param student: 受講生情報
+   * @param courseId: 受講生が受講するコースID
    * @return 登録した受講生詳細情報
    */
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody StudentDetail studentDetail) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody Student student, @RequestParam @Min(1) int courseId) {
+    StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
     service.registerStudent(studentDetail);
 
     studentDetail.getStudentCourses().forEach(studentCourse -> studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId())));
@@ -98,12 +101,10 @@ public class StudentController {
    */
   @PostMapping("/registerStudentCourse/{studentId}/{courseId}")
   public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Min(1) int studentId) {
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setStudentId(studentId);
-    studentCourse.setCourseId(courseId);
+    StudentCourse studentCourse = StudentCourse.initStudentCourse(studentId, courseId);
     service.registerStudentCourse(studentCourse);
 
-    studentCourse.setCourseName(service.searchCourseNameById(courseId));
+    studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId()));
     return ResponseEntity.ok(studentCourse);
   }
 

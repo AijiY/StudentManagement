@@ -12,8 +12,9 @@ public class Course {
   private String name;
 
   // @Insert用のコンストラクタ
-  public Course() {
+  public Course(String name) {
     this.id = 0;
+    this.name = name;
   }
 
 }
