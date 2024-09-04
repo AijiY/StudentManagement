@@ -87,11 +87,11 @@ public class StudentService {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
 //    isDeletedをfalseに設定
-    student.setDeleted(false);
     repository.insertStudent(student);
 
 //    ②コース情報を登録
     StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
+    studentCourse.setStudentId(student.getId());
     repository.insertStudentCourse(studentCourse);
   }
 
