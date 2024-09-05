@@ -1,14 +1,21 @@
 package raisetech.student.management.controller;
 
+import jakarta.validation.constraints.Min;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.controller.converter.StudentConverter;
+import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.StudentDetail;
@@ -17,6 +24,7 @@ import raisetech.student.management.service.StudentService;
 /**
  * 受講生の検索や登録、更新などを行うRestAPIとして実行されるController
  */
+@Validated
 @RestController
 public class StudentController {
 
@@ -36,8 +44,8 @@ public class StudentController {
    */
   @GetMapping("/students")
   public List<StudentDetail> getStudents() {
-    List<Student> students = service.searchStudentList();
-    List<StudentCourse> studentCourses = service.searchStudentCourseList();
+    List<Student> students = service.searchStudents();
+    List<StudentCourse> studentCourses = service.searchStudentCourses();
 
     List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentCourses);
 
@@ -50,7 +58,7 @@ public class StudentController {
    * @return idに対応する受講生情報
    */
   @GetMapping("/student/{id}")
-  public StudentDetail getStudent(@PathVariable int id) {
+  public StudentDetail getStudent(@PathVariable @Min(1) int id) {
     Student student = service.searchStudentById(id);
     List<StudentCourse> studentCourses = service.searchStudentCoursesByStudentId(id);
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
@@ -60,26 +68,65 @@ public class StudentController {
 
   /**
    * 受講生登録
-   * @param studentDetail
-   * @return 登録した受講生情報
+   * @param student: 受講生情報
+   * @param courseId: 受講生が受講するコースID
+   * @return 登録した受講生詳細情報
    */
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody StudentDetail studentDetail) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody Student student, @RequestParam @Min(1) int courseId) {
+    StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
     service.registerStudent(studentDetail);
 
+    studentDetail.getStudentCourses().forEach(studentCourse -> studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId())));
     return ResponseEntity.ok(studentDetail);
   }
 
   /**
    * 受講生更新
    * @param studentDetail
-   * @return 更新した受講生情報
+   * @return 更新した受講生詳細情報
    */
-  @PostMapping("/updateStudent")
+  @PutMapping("/updateStudent")
   public ResponseEntity<StudentDetail> updateStudent(@RequestBody StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
 
     return ResponseEntity.ok(studentDetail);
+  }
+
+  /**
+   * 受講生コース登録（受講生登録を伴わない個別のコース登録）
+   * @param courseId
+   * @param studentId
+   * @return 登録した受講生コース情報
+   */
+  @PostMapping("/registerStudentCourse/{studentId}/{courseId}")
+  public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Min(1) int studentId) {
+    StudentCourse studentCourse = StudentCourse.initStudentCourse(studentId, courseId);
+    service.registerStudentCourse(studentCourse);
+
+    studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId()));
+    return ResponseEntity.ok(studentCourse);
+  }
+
+  @PostMapping("/registerCourse")
+  public ResponseEntity<Course> registerCourse(@RequestBody Course course) {
+    service.registerCourse(course);
+
+    return ResponseEntity.ok(course);
+  }
+
+  /**
+   * 受講生論理削除
+   * @param id
+   * @return idと削除フラグの組み合わせ
+   */
+  @PatchMapping("/deleteStudent/{id}")
+  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Min(1) int id) {
+    service.deleteStudent(id);
+
+    boolean deleted = service.searchStudentById(id).isDeleted();
+    Map<String, Object> response = Map.of("id", id, "deleted", deleted);
+    return ResponseEntity.ok(response);
   }
 
 }

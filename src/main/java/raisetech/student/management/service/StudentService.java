@@ -1,10 +1,10 @@
 package raisetech.student.management.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.StudentDetail;
@@ -24,20 +24,57 @@ public class StudentService {
     this.repository = repository;
   }
 
-  public List<Student> searchStudentList() {
-    return repository.searchStudent();
+  public List<Student> searchStudents() {
+    return repository.searchStudents();
   }
 
-  public List<StudentCourse> searchStudentCourseList() {
-    return repository.searchStudentCourse();
+  /**
+   * 受講生のコース情報を全件検索
+   * コースidからコース名も取得して設定
+   * @return
+   */
+  public List<StudentCourse> searchStudentCourses() {
+    List<StudentCourse> studentCourses = repository.searchStudentCourses();
+    studentCourses.forEach(studentCourse -> {
+      String courseName = repository.searchCourseNameById(studentCourse.getCourseId());
+      studentCourse.setCourseName(courseName);
+    });
+    return studentCourses;
   }
 
   public Student searchStudentById(int id) {
     return repository.searchStudentById(id);
   }
 
+  /**
+   * 受講生IDを指定して受講生のコース情報を検索
+   * コースidからコース名も取得して設定
+   * @param studentId
+   * @return
+   */
   public List<StudentCourse> searchStudentCoursesByStudentId(int studentId) {
-    return repository.searchStudentCoursesByStudentId(studentId);
+    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(studentId);
+    studentCourses.forEach(studentCourse -> {
+      String courseName = repository.searchCourseNameById(studentCourse.getCourseId());
+      studentCourse.setCourseName(courseName);
+    });
+    return studentCourses;
+  }
+
+  /**
+   * コース情報を全件検索
+   */
+  public List<Course> searchCourses() {
+    return repository.searchCourses();
+  }
+
+  /**
+   * コースIDを指定してコース名を検索
+   * @param id
+   * @return
+   */
+  public String searchCourseNameById(int id) {
+    return repository.searchCourseNameById(id);
   }
 
   /**
@@ -50,18 +87,11 @@ public class StudentService {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
 //    isDeletedをfalseに設定
-    student.setDeleted(false);
     repository.insertStudent(student);
 
 //    ②コース情報を登録
     StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
-//    studentIdを登録した受講生のidに設定
-    studentCourse.setStudentId(studentDetail.getStudent().getId());
-//    startDateを本日に設定
-    studentCourse.setStartDate(LocalDate.now());
-//    endDueDateを開始日から16週間後に設定
-    studentCourse.setEndDueDate(studentCourse.getStartDate().plusWeeks(16));
-
+    studentCourse.setStudentId(student.getId());
     repository.insertStudentCourse(studentCourse);
   }
 
@@ -70,5 +100,20 @@ public class StudentService {
 //    ①受講生情報を更新
     Student student = studentDetail.getStudent();
     repository.updateStudent(student);
+  }
+
+  @Transactional
+  public void registerStudentCourse(StudentCourse studentCourse) {
+    repository.insertStudentCourse(studentCourse);
+  }
+
+  @Transactional
+  public void registerCourse(Course course) {
+    repository.insertCourse(course);
+  }
+
+  @Transactional
+  public void deleteStudent(int id) {
+    repository.deleteStudent(id);
   }
 }
