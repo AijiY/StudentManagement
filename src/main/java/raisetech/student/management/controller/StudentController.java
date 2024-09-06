@@ -1,5 +1,6 @@
 package raisetech.student.management.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.StudentDetail;
+import raisetech.student.management.exception.ResourceConflictException;
+import raisetech.student.management.exception.ResourceNotFoundException;
 import raisetech.student.management.service.StudentService;
 
 /**
@@ -58,7 +61,7 @@ public class StudentController {
    * @return idに対応する受講生情報
    */
   @GetMapping("/student/{id}")
-  public StudentDetail getStudent(@PathVariable @Min(1) int id) {
+  public StudentDetail getStudent(@PathVariable @Min(1) int id) throws ResourceNotFoundException {
     Student student = service.searchStudentById(id);
     List<StudentCourse> studentCourses = service.searchStudentCoursesByStudentId(id);
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
@@ -73,7 +76,7 @@ public class StudentController {
    * @return 登録した受講生詳細情報
    */
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody Student student, @RequestParam @Min(1) int courseId) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid Student student, @RequestParam @Min(1) int courseId) {
     StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
     service.registerStudent(studentDetail);
 
@@ -87,7 +90,7 @@ public class StudentController {
    * @return 更新した受講生詳細情報
    */
   @PutMapping("/updateStudent")
-  public ResponseEntity<StudentDetail> updateStudent(@RequestBody StudentDetail studentDetail) {
+  public ResponseEntity<StudentDetail> updateStudent(@RequestBody @Valid StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
 
     return ResponseEntity.ok(studentDetail);
@@ -109,7 +112,7 @@ public class StudentController {
   }
 
   @PostMapping("/registerCourse")
-  public ResponseEntity<Course> registerCourse(@RequestBody Course course) {
+  public ResponseEntity<Course> registerCourse(@RequestBody @Valid Course course) {
     service.registerCourse(course);
 
     return ResponseEntity.ok(course);
@@ -121,12 +124,15 @@ public class StudentController {
    * @return idと削除フラグの組み合わせ
    */
   @PatchMapping("/deleteStudent/{id}")
-  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Min(1) int id) {
+  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Min(1) int id)
+      throws ResourceConflictException, ResourceNotFoundException {
+
     service.deleteStudent(id);
 
     boolean deleted = service.searchStudentById(id).isDeleted();
     Map<String, Object> response = Map.of("id", id, "deleted", deleted);
     return ResponseEntity.ok(response);
+
   }
 
 }

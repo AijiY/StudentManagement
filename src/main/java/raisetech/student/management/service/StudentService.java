@@ -8,6 +8,8 @@ import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.StudentDetail;
+import raisetech.student.management.exception.ResourceConflictException;
+import raisetech.student.management.exception.ResourceNotFoundException;
 import raisetech.student.management.repository.StudentRepository;
 
 /**
@@ -42,8 +44,12 @@ public class StudentService {
     return studentCourses;
   }
 
-  public Student searchStudentById(int id) {
-    return repository.searchStudentById(id);
+  public Student searchStudentById(int id) throws ResourceNotFoundException {
+    Student student = repository.searchStudentById(id);
+    if (student == null) {
+      throw new ResourceNotFoundException("指定されたIDの受講生は存在しません");
+    }
+    return student;
   }
 
   /**
@@ -86,7 +92,6 @@ public class StudentService {
   public void registerStudent(StudentDetail studentDetail) {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
-//    isDeletedをfalseに設定
     repository.insertStudent(student);
 
 //    ②コース情報を登録
@@ -113,7 +118,15 @@ public class StudentService {
   }
 
   @Transactional
-  public void deleteStudent(int id) {
+  public void deleteStudent(int id) throws ResourceConflictException, ResourceNotFoundException {
+    Student student = repository.searchStudentById(id);
+    if (student == null) {
+      throw new ResourceNotFoundException("指定されたIDの受講生は存在しません");
+    }
+    if (student.isDeleted()) {
+      throw new ResourceConflictException("既に論理削除されている受講生です");
+    }
+
     repository.deleteStudent(id);
   }
 }
