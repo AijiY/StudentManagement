@@ -124,7 +124,7 @@ public class StudentService {
       throw new ResourceNotFoundException("指定されたIDの受講生は存在しません");
     }
     if (student.isDeleted()) {
-      throw new ResourceConflictException("既に論理削除されている受講生です");
+      throw new ResourceConflictException("既に削除されている受講生です");
     }
 
     repository.deleteStudent(id);

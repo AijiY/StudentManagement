@@ -3,8 +3,8 @@ package raisetech.student.management.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +30,7 @@ public class Student {
 
   private String livingArea;
 
-  @Min(1)
+  @Positive
   private int age;
 
   private String gender;

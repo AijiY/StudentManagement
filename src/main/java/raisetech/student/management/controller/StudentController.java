@@ -2,6 +2,7 @@ package raisetech.student.management.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class StudentController {
    * @return idに対応する受講生情報
    */
   @GetMapping("/student/{id}")
-  public StudentDetail getStudent(@PathVariable @Min(1) int id) throws ResourceNotFoundException {
+  public StudentDetail getStudent(@PathVariable @Positive int id) throws ResourceNotFoundException {
     Student student = service.searchStudentById(id);
     List<StudentCourse> studentCourses = service.searchStudentCoursesByStudentId(id);
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
@@ -76,7 +77,7 @@ public class StudentController {
    * @return 登録した受講生詳細情報
    */
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid Student student, @RequestParam @Min(1) int courseId) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid Student student, @RequestParam @Positive int courseId) {
     StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
     service.registerStudent(studentDetail);
 
@@ -103,7 +104,7 @@ public class StudentController {
    * @return 登録した受講生コース情報
    */
   @PostMapping("/registerStudentCourse/{studentId}/{courseId}")
-  public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Min(1) int studentId) {
+  public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Positive int studentId) {
     StudentCourse studentCourse = StudentCourse.initStudentCourse(studentId, courseId);
     service.registerStudentCourse(studentCourse);
 
@@ -124,7 +125,7 @@ public class StudentController {
    * @return idと削除フラグの組み合わせ
    */
   @PatchMapping("/deleteStudent/{id}")
-  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Min(1) int id)
+  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Positive int id)
       throws ResourceConflictException, ResourceNotFoundException {
 
     service.deleteStudent(id);
