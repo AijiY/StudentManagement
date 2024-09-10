@@ -25,13 +25,15 @@ repositories {
 }
 
 dependencies {
+//	Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
 //	Thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
 //	Validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+//	OpenAPI Generator
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
 
 //	便利機能追加

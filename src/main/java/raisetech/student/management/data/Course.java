@@ -1,27 +1,26 @@
 package raisetech.student.management.data;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import raisetech.student.management.domain.CourseForInsert;
 
+@Schema(description = "コース情報を保持するクラス")
 @Getter
 @Setter
 @AllArgsConstructor // @Select用のコンストラクタ
 public class Course {
 
   private final int id;
-
-  @NotBlank
   private String name;
+  private int price;
 
   // @Insert用のコンストラクタ
-  @JsonCreator
-  public Course(@JsonProperty String name) {
+  public Course(CourseForInsert courseForInsert) {
     this.id = 0;
-    this.name = name;
+    this.name = courseForInsert.getName();
+    this.price = courseForInsert.getPrice();
   }
 
 }

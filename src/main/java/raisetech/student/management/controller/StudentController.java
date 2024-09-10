@@ -1,10 +1,10 @@
 package raisetech.student.management.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,7 +20,10 @@ import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.domain.CourseForInsert;
+import raisetech.student.management.domain.ResponseForDelete;
 import raisetech.student.management.domain.StudentDetail;
+import raisetech.student.management.domain.StudentForInsert;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
 import raisetech.student.management.service.StudentService;
@@ -46,6 +49,7 @@ public class StudentController {
    * 全件検索を実施するので、条件指定なし
    * @return 受講生一覧
    */
+  @Operation(summary = "受講生一覧検索", description = "全ての受講生情報を取得します")
   @GetMapping("/students")
   public List<StudentDetail> getStudents() {
     List<Student> students = service.searchStudents();
@@ -61,6 +65,7 @@ public class StudentController {
    * @param id
    * @return idに対応する受講生情報
    */
+  @Operation(summary = "受講生検索", description = "指定されたIDの受講生情報（コース情報含む）を取得します")
   @GetMapping("/student/{id}")
   public StudentDetail getStudent(@PathVariable @Positive int id) throws ResourceNotFoundException {
     Student student = service.searchStudentById(id);
@@ -72,12 +77,14 @@ public class StudentController {
 
   /**
    * 受講生登録
-   * @param student: 受講生情報
+   * @param studentForInsert: 受講生登録情報
    * @param courseId: 受講生が受講するコースID
    * @return 登録した受講生詳細情報
    */
+  @Operation(summary = "受講生登録", description = "新規の受講生情報（初期コース情報含む）を登録します")
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid Student student, @RequestParam @Positive int courseId) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid StudentForInsert studentForInsert, @RequestParam @Positive int courseId) {
+    Student student = new Student(studentForInsert);
     StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
     service.registerStudent(studentDetail);
 
@@ -90,6 +97,7 @@ public class StudentController {
    * @param studentDetail
    * @return 更新した受講生詳細情報
    */
+  @Operation(summary = "受講生更新", description = "指定された受講生情報を更新します")
   @PutMapping("/updateStudent")
   public ResponseEntity<StudentDetail> updateStudent(@RequestBody @Valid StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
@@ -103,6 +111,7 @@ public class StudentController {
    * @param studentId
    * @return 登録した受講生コース情報
    */
+  @Operation(summary = "受講生コース登録", description = "指定された受講生に対して指定されたコースを登録します")
   @PostMapping("/registerStudentCourse/{studentId}/{courseId}")
   public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Positive int studentId) {
     StudentCourse studentCourse = StudentCourse.initStudentCourse(studentId, courseId);
@@ -113,7 +122,8 @@ public class StudentController {
   }
 
   @PostMapping("/registerCourse")
-  public ResponseEntity<Course> registerCourse(@RequestBody @Valid Course course) {
+  public ResponseEntity<Course> registerCourse(@RequestBody @Valid CourseForInsert courseForInsert) {
+    Course course = new Course(courseForInsert);
     service.registerCourse(course);
 
     return ResponseEntity.ok(course);
@@ -124,16 +134,16 @@ public class StudentController {
    * @param id
    * @return idと削除フラグの組み合わせ
    */
+  @Operation(summary = "受講生論理削除", description = "指定されたIDの受講生情報を論理削除します")
   @PatchMapping("/deleteStudent/{id}")
-  public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable @Positive int id)
+  public ResponseEntity<ResponseForDelete> deleteStudent(@PathVariable @Positive int id)
       throws ResourceConflictException, ResourceNotFoundException {
 
     service.deleteStudent(id);
 
     boolean deleted = service.searchStudentById(id).isDeleted();
-    Map<String, Object> response = Map.of("id", id, "deleted", deleted);
+    ResponseForDelete response = new ResponseForDelete(id, deleted);
     return ResponseEntity.ok(response);
-
   }
 
 }
