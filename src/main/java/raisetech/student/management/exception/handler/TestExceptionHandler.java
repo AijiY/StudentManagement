@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -19,7 +18,7 @@ import raisetech.student.management.exception.ResourceNotFoundException;
 @ControllerAdvice
 public class TestExceptionHandler {
 
-  // @RequestParamに対するValidationのExceptionのハンドリング処理を記述（@Minなど対象）
+  // @RequestParam、@PathVariableに対するValidationのExceptionのハンドリング処理を記述（@Minなど対象）
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
     return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,7 +39,7 @@ public class TestExceptionHandler {
   }
 
 
-  // @RequestParamのデータ型の不整合のエラーのハンドリング処理を記述
+  // @RequestParam、@PathVariableのデータ型の不整合のエラーのハンドリング処理を記述
   @ExceptionHandler(TypeMismatchException.class)
   public ResponseEntity<Map<String, String>> handleTypeMismatchException(TypeMismatchException e) {
     Map<String, String> errorDetails = new HashMap<>();
@@ -84,12 +83,6 @@ public class TestExceptionHandler {
     return ResponseEntity.badRequest().body(errorDetails);
   }
 
-  // insert時のid重複エラーのハンドリング処理を記述
-  @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body("IDが重複しています");
-  }
-
   // リソースの競合エラーのハンドリング処理を記述（例：論理削除済みのデータを論理削除しようとした場合）
   @ExceptionHandler(ResourceConflictException.class)
   public ResponseEntity<String> handleResourceConflictException(ResourceConflictException e) {
@@ -101,7 +94,5 @@ public class TestExceptionHandler {
   public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
   }
-
-
 }
 

@@ -35,7 +35,7 @@
   </insert>
 <!-- コース情報を新規登録 -->
   <insert id="insertCourse" parameterType="raisetech.student.management.data.Course" useGeneratedKeys="true" keyProperty="id">
-    INSERT INTO courses VALUES (#{id}, #{name})
+    INSERT INTO courses VALUES (#{id}, #{name}, #{price})
   </insert>
 <!-- 受講生情報を更新 -->
   <update id="updateStudent" parameterType="raisetech.student.management.data.Student">
