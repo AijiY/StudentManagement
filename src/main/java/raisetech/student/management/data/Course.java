@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import raisetech.student.management.domain.CourseForInsert;
+import raisetech.student.management.domain.CourseForJson;
 
 @Schema(description = "コース情報を保持するクラス")
 @Getter
@@ -17,10 +17,10 @@ public class Course {
   private int price;
 
   // @Insert用のコンストラクタ
-  public Course(CourseForInsert courseForInsert) {
+  public Course(CourseForJson courseForJson) {
     this.id = 0;
-    this.name = courseForInsert.getName();
-    this.price = courseForInsert.getPrice();
+    this.name = courseForJson.getName();
+    this.price = courseForJson.getPrice();
   }
 
 }

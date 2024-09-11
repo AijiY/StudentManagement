@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import raisetech.student.management.domain.StudentForInsert;
+import raisetech.student.management.domain.StudentDetailForJson;
 
 @Schema(description = "受講生情報を保持するクラス")
 @Getter
@@ -24,16 +24,16 @@ public class Student {
   private boolean deleted;
 
 //  @Insert用のコンストラクタ
-  public Student(StudentForInsert studentForInsert) {
+  public Student(StudentDetailForJson studentDetailForJson) {
     this.id = 0;
-    this.name = studentForInsert.getName();
-    this.kanaName = studentForInsert.getKanaName();
-    this.nickname = studentForInsert.getNickname();
-    this.email = studentForInsert.getEmail();
-    this.livingArea = studentForInsert.getLivingArea();
-    this.age = studentForInsert.getAge();
-    this.gender = studentForInsert.getGender();
-    this.remark = studentForInsert.getRemark();
+    this.name = studentDetailForJson.getName();
+    this.kanaName = studentDetailForJson.getKanaName();
+    this.nickname = studentDetailForJson.getNickname();
+    this.email = studentDetailForJson.getEmail();
+    this.livingArea = studentDetailForJson.getLivingArea();
+    this.age = studentDetailForJson.getAge();
+    this.gender = studentDetailForJson.getGender();
+    this.remark = studentDetailForJson.getRemark();
     this.deleted = false;
   }
 }

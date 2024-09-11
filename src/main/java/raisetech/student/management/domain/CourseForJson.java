@@ -9,7 +9,7 @@ import lombok.Getter;
 @Schema(description = "コース情報を登録するためのクラス")
 @AllArgsConstructor
 @Getter
-public class CourseForInsert {
+public class CourseForJson {
 
   @NotBlank
   private String name;

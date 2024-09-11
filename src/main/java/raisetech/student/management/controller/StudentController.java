@@ -2,7 +2,6 @@ package raisetech.student.management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,16 +13,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
-import raisetech.student.management.domain.CourseForInsert;
+import raisetech.student.management.domain.CourseForJson;
 import raisetech.student.management.domain.ResponseForDelete;
+import raisetech.student.management.domain.StudentCourseForJson;
 import raisetech.student.management.domain.StudentDetail;
-import raisetech.student.management.domain.StudentForInsert;
+import raisetech.student.management.domain.StudentDetailForJson;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
 import raisetech.student.management.service.StudentService;
@@ -77,18 +76,18 @@ public class StudentController {
 
   /**
    * 受講生登録
-   * @param studentForInsert: 受講生登録情報
-   * @param courseId: 受講生が受講するコースID
+   * @param studentDetailForJson: 受講生登録情報（受講生情報＋初期コースid）
    * @return 登録した受講生詳細情報
    */
   @Operation(summary = "受講生登録", description = "新規の受講生情報（初期コース情報含む）を登録します")
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid StudentForInsert studentForInsert, @RequestParam @Positive int courseId) {
-    Student student = new Student(studentForInsert);
-    StudentDetail studentDetail = new StudentDetail(student, List.of(StudentCourse.initStudentCourse(student.getId(), courseId)));
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid StudentDetailForJson studentDetailForJson) {
+    Student student = new Student(studentDetailForJson);
+    StudentCourse studentCourse = StudentCourse.initStudentCourse(0, studentDetailForJson.getCourseId()); // この時点でidは不明なので0
+    StudentDetail studentDetail = new StudentDetail(student, List.of(studentCourse));
     service.registerStudent(studentDetail);
 
-    studentDetail.getStudentCourses().forEach(studentCourse -> studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId())));
+    studentDetail.getStudentCourses().forEach(sc -> sc.setCourseName(service.searchCourseNameById(sc.getCourseId())));
     return ResponseEntity.ok(studentDetail);
   }
 
@@ -107,23 +106,30 @@ public class StudentController {
 
   /**
    * 受講生コース登録（受講生登録を伴わない個別のコース登録）
-   * @param courseId
-   * @param studentId
+   * @param studentCourseForJson
    * @return 登録した受講生コース情報
    */
   @Operation(summary = "受講生コース登録", description = "指定された受講生に対して指定されたコースを登録します")
-  @PostMapping("/registerStudentCourse/{studentId}/{courseId}")
-  public ResponseEntity<StudentCourse> registerStudentCourse(@PathVariable @Min(1) int courseId, @PathVariable @Positive int studentId) {
-    StudentCourse studentCourse = StudentCourse.initStudentCourse(studentId, courseId);
+  @PostMapping("/registerStudentCourse")
+  public ResponseEntity<StudentCourse> registerStudentCourse
+    (@RequestBody @Valid StudentCourseForJson studentCourseForJson) {
+    StudentCourse studentCourse = StudentCourse.initStudentCourse(
+        studentCourseForJson.getStudentId(), studentCourseForJson.getCourseId());
     service.registerStudentCourse(studentCourse);
 
     studentCourse.setCourseName(service.searchCourseNameById(studentCourse.getCourseId()));
     return ResponseEntity.ok(studentCourse);
   }
 
+  /**
+   * コース登録
+   * @param courseForJson
+   * @return 登録したコース情報
+   */
+  @Operation(summary = "コース登録", description = "新規のコース情報を登録します")
   @PostMapping("/registerCourse")
-  public ResponseEntity<Course> registerCourse(@RequestBody @Valid CourseForInsert courseForInsert) {
-    Course course = new Course(courseForInsert);
+  public ResponseEntity<Course> registerCourse(@RequestBody @Valid CourseForJson courseForJson) {
+    Course course = new Course(courseForJson);
     service.registerCourse(course);
 
     return ResponseEntity.ok(course);

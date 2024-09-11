@@ -10,7 +10,7 @@ import lombok.Getter;
 @Schema(description = "受講生情報を登録するためのクラス")
 @AllArgsConstructor
 @Getter
-public class StudentForInsert {
+public class StudentDetailForJson {
   @NotBlank
   private String name;
 
@@ -31,4 +31,7 @@ public class StudentForInsert {
   private String gender;
 
   private String remark;
+
+  @Positive
+  private int courseId;
 }
