@@ -11,6 +11,7 @@ import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
 import raisetech.student.management.repository.StudentRepository;
+import raisetech.student.management.service.converter.StudentConverter;
 
 /**
  * 受講生情報を扱うサービス
@@ -20,12 +21,18 @@ import raisetech.student.management.repository.StudentRepository;
 public class StudentService {
 
   private StudentRepository repository;
+  private StudentConverter converter;
 
   @Autowired
-  public StudentService(StudentRepository repository) {
+  public StudentService(StudentRepository repository, StudentConverter converter) {
     this.repository = repository;
+    this.converter = converter;
   }
 
+  /**
+   * 受講生情報を全件検索
+   * @return
+   */
   public List<Student> searchStudents() {
     return repository.searchStudents();
   }
@@ -44,6 +51,11 @@ public class StudentService {
     return studentCourses;
   }
 
+  /**
+   * 受講生IDを指定して受講生情報を検索
+   * @param id
+   * @return
+   */
   public Student searchStudentById(int id) throws ResourceNotFoundException {
     Student student = repository.searchStudentById(id);
     if (student == null) {
@@ -65,6 +77,29 @@ public class StudentService {
       studentCourse.setCourseName(courseName);
     });
     return studentCourses;
+  }
+
+  /**
+   * 受講生詳細情報を全件検索
+   * 受講生情報と受講生のコース情報を結合した情報を返却
+   * @return 受講生詳細情報一覧
+   */
+  public List<StudentDetail> searchStudentDetails() {
+    List<Student> students = searchStudents();
+    List<StudentCourse> studentCourses = searchStudentCourses();
+    return converter.convertStudentDetails(students, studentCourses);
+  }
+
+  /**
+   * 受講生IDを指定して受講生詳細情報を検索
+   * 受講生情報と受講生のコース情報を結合した情報を返却
+   * @param id
+   * @return idに対応する受講生詳細情報
+   */
+  public StudentDetail searchStudentDetailById(int id) throws ResourceNotFoundException {
+    Student student = searchStudentById(id);
+    List<StudentCourse> studentCourses = searchStudentCoursesByStudentId(id);
+    return new StudentDetail(student, studentCourses);
   }
 
   /**
