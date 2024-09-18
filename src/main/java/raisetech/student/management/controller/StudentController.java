@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
@@ -35,12 +34,10 @@ import raisetech.student.management.service.StudentService;
 public class StudentController {
 
   private StudentService service;
-  private StudentConverter converter;
 
   @Autowired
-  public StudentController(StudentService service, StudentConverter converter) {
+  public StudentController(StudentService service) {
     this.service = service;
-    this.converter = converter;
   }
 
   /**
@@ -51,10 +48,8 @@ public class StudentController {
   @Operation(summary = "受講生一覧検索", description = "全ての受講生情報を取得します")
   @GetMapping("/students")
   public List<StudentDetail> getStudents() {
-    List<Student> students = service.searchStudents();
-    List<StudentCourse> studentCourses = service.searchStudentCourses();
 
-    List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentCourses);
+    List<StudentDetail> studentDetails = service.searchStudentDetails();
 
     return studentDetails;
   }
@@ -65,11 +60,10 @@ public class StudentController {
    * @return idに対応する受講生情報
    */
   @Operation(summary = "受講生検索", description = "指定されたIDの受講生情報（コース情報含む）を取得します")
-  @GetMapping("/student/{id}")
+  @GetMapping("/students/{id}")
   public StudentDetail getStudent(@PathVariable @Positive int id) throws ResourceNotFoundException {
-    Student student = service.searchStudentById(id);
-    List<StudentCourse> studentCourses = service.searchStudentCoursesByStudentId(id);
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    StudentDetail studentDetail = service.searchStudentDetailById(id);
 
     return studentDetail;
   }
