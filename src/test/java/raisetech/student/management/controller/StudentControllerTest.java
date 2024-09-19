@@ -10,8 +10,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.validation.ConstraintViolationException;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -97,22 +100,43 @@ class StudentControllerTest {
     verify(service, times(1)).searchCourseNameById(any(int.class));
   }
 
-  @Test
-  void 受講生登録で必要な値がない場合の例外処理が適切に発生すること() throws Exception {
-    // RequestBodyを作成（@NotBlank対象のフィールドに""を入れる）
-    String requestBody = """
+  @ParameterizedTest
+  @CsvSource({
+      // フィールドに不足がある場合（@Blank対象）
+      "'', '', null, '', null, 1, null, null, 1, 3, 'name, kanaName, email', "
+          + "'must not be blank, must not be blank, must not be blank'",
+      // フィールドに不正な値がある場合（@Email、@Positive対象）
+      "'name', 'kanaName', null, 'aaa', null, 0, null, null, 0, 3, 'email, age, courseId', "
+          + "'must be a well-formed email address, must be greater than 0, must be greater than 0'"
+  })
+  void 受講生登録のバリデーションテスト(String name, String kanaName, String nickname, String email, String livingArea,
+      int age, String gender, String remark, int courseId, int expectedErrorCount,
+      String expectedErrorFields, String expectedErrorMessages) throws Exception {
+
+    // JSON形式のRequestBodyを作成
+    String requestBody = String.format("""
         {
-            "name": "",
-            "kanaName": "",
-            "nickname": null,
-            "email": "",
-            "livingArea": null,
-            "age": 1,
-            "gender": null,
-            "remark": null,
-            "courseId": 1
+            "name": "%s",
+            "kanaName": "%s",
+            "nickname": %s,
+            "email": "%s",
+            "livingArea": %s,
+            "age": %d,
+            "gender": %s,
+            "remark": %s,
+            "courseId": %d
         }
-        """;
+        """,
+        name,
+        kanaName,
+        nickname,
+        email,
+        livingArea,
+        age,
+        gender,
+        remark,
+        courseId
+    );
 
     mockMvc.perform(MockMvcRequestBuilders.post("/registerStudent")
             .contentType("application/json")
@@ -127,62 +151,25 @@ class StudentControllerTest {
           List<FieldError> fieldErrors = bindingResult.getFieldErrors();
 
           // バリデーションエラーが期待通りの数か確認
-          assertThat(fieldErrors.size()).isEqualTo(3); // 3つのバリデーションエラーがあることを確認
+          assertThat(fieldErrors.size()).isEqualTo(expectedErrorCount);
+
+          // フィールド名とエラーメッセージの配列を取得
+          String[] expectedFields = expectedErrorFields.split(",");
+          String[] expectedMessages = expectedErrorMessages.split(",");
+
+          // 各フィールド名とメッセージをトリム（余分なスペースを削除）
+          expectedFields = Arrays.stream(expectedFields).map(String::trim).toArray(String[]::new);
+          expectedMessages = Arrays.stream(expectedMessages).map(String::trim).toArray(String[]::new);
 
           // 各フィールドのエラーメッセージを確認
           assertThat(fieldErrors)
               .extracting(FieldError::getField)
-              .containsExactlyInAnyOrder("name", "kanaName", "email");
+              .containsExactlyInAnyOrder(expectedFields);
 
-          // 各フィールドのエラー内容も確認可能
+          // 各フィールドのエラーメッセージ内容も確認
           assertThat(fieldErrors)
               .extracting(FieldError::getDefaultMessage)
-              .contains("must not be blank", "must not be blank", "must not be blank");
-        });
-  }
-
-  @Test
-  void 受講生登録で不正な値がある場合の例外処理が適切であること() throws Exception {
-    // RequestBodyを作成（emailに不正な値、ageに0、courseIdに0を入れる）
-    String requestBody = """
-        {
-            "name": "name",
-            "kanaName": "kanaName",
-            "nickname": null,
-            "email": "aaa",
-            "livingArea": null,
-            "age": 0,
-            "gender": null,
-            "remark": null,
-            "courseId": 0
-        }
-        """;
-
-    // 実行
-    mockMvc.perform(MockMvcRequestBuilders.post("/registerStudent")
-            .contentType("application/json")
-            .content(requestBody))
-        .andExpect(status().isBadRequest()) // バリデーションエラーを期待
-        .andExpect(result -> {
-          // 例外を取得
-          MethodArgumentNotValidException ex = (MethodArgumentNotValidException) result.getResolvedException();
-
-          // BindingResultを取得し、すべてのエラーを確認
-          BindingResult bindingResult = ex.getBindingResult();
-          List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-
-          // バリデーションエラーが期待通りの数か確認
-          assertThat(fieldErrors.size()).isEqualTo(3); // 3つのバリデーションエラーがあることを確認
-
-          // 各フィールドのエラーメッセージを確認
-          assertThat(fieldErrors)
-              .extracting(FieldError::getField)
-              .containsExactlyInAnyOrder("email", "age", "courseId");
-
-          // 各フィールドのエラー内容も確認可能
-          assertThat(fieldErrors)
-              .extracting(FieldError::getDefaultMessage)
-              .contains("must be a well-formed email address", "must be greater than 0", "must be greater than 0");
+              .containsExactlyInAnyOrder(expectedMessages);
         });
   }
 
@@ -298,52 +285,21 @@ class StudentControllerTest {
     verify(service, times(1)).registerCourse(any(Course.class));
   }
 
-  @Test
-  void コース登録で必要な値がない場合の例外処理が適切に発生すること() throws Exception {
-    // JSON形式のリクエストボディを直接指定（@NotBlank対象のフィールドに""を入れる）
-    String requestBody = """
+  @ParameterizedTest
+  @CsvSource({
+      "'', 1, name, 'must not be blank'", // nameのバリデーションエラー
+      "'name', 0, price, 'must be greater than 0'" // priceのバリデーションエラー
+  })
+  void コース登録のバリデーションテスト(String name, int price, String expectedField, String expectedMessage) throws Exception {
+    String requestBody = String.format("""
         {
-            "name": "",
-            "price": 1
+            "name": "%s",
+            "price": %d
         }
-        """;
-
-    mockMvc.perform(MockMvcRequestBuilders.post("/registerCourse")
-            .contentType("application/json")
-            .content(requestBody))
-        .andExpect(status().isBadRequest()) // バリデーションエラーを期待
-        .andExpect(result -> {
-          // 例外を取得
-          MethodArgumentNotValidException ex = (MethodArgumentNotValidException) result.getResolvedException();
-
-          // BindingResultを取得し、すべてのエラーを確認
-          BindingResult bindingResult = ex.getBindingResult();
-          List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-
-          // バリデーションエラーが期待通りの数か確認
-          assertThat(fieldErrors.size()).isEqualTo(1); // 1つのバリデーションエラーがあることを確認
-
-          // 各フィールドのエラーメッセージを確認
-          assertThat(fieldErrors)
-              .extracting(FieldError::getField)
-              .containsExactlyInAnyOrder("name");
-
-          // 各フィールドのエラー内容も確認可能
-          assertThat(fieldErrors)
-              .extracting(FieldError::getDefaultMessage)
-              .contains("must not be blank");
-        });
-  }
-
-  @Test
-  void コース登録で不正な値がある場合の例外処理が適切であること() throws Exception {
-    // JSON形式のリクエストボディを直接指定（priceに0を入れる）
-    String requestBody = """
-        {
-            "name": "name",
-            "price": 0
-        }
-        """;
+        """,
+        name,
+        price
+    );
 
     // 実行
     mockMvc.perform(MockMvcRequestBuilders.post("/registerCourse")
@@ -358,20 +314,21 @@ class StudentControllerTest {
           BindingResult bindingResult = ex.getBindingResult();
           List<FieldError> fieldErrors = bindingResult.getFieldErrors();
 
-          // バリデーションエラーが期待通りの数か確認
-          assertThat(fieldErrors.size()).isEqualTo(1); // 1つのバリデーションエラーがあることを確認
+          // バリデーションエラーが1つであることを確認
+          assertThat(fieldErrors.size()).isEqualTo(1);
 
           // 各フィールドのエラーメッセージを確認
           assertThat(fieldErrors)
               .extracting(FieldError::getField)
-              .containsExactlyInAnyOrder("price");
+              .containsExactly(expectedField);
 
-          // 各フィールドのエラー内容も確認可能
+          // 各フィールドのエラー内容も確認
           assertThat(fieldErrors)
               .extracting(FieldError::getDefaultMessage)
-              .contains("must be greater than 0");
+              .contains(expectedMessage);
         });
   }
+
 
   @Test
   void 受講生削除ができること() throws Exception {
