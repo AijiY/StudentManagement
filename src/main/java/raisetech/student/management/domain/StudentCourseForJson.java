@@ -8,11 +8,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class StudentCourseForJson {
-  @NotNull
   @Positive
   private int studentId;
 
-  @NotNull
   @Positive
   private int courseId;
 
