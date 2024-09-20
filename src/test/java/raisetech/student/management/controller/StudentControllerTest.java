@@ -210,6 +210,84 @@ class StudentControllerTest {
     verify(service, times(1)).updateStudent(any(StudentDetail.class));
   }
 
+  @ParameterizedTest
+  @CsvSource({
+      // フィールドに不足がある場合（@Blank対象）
+      "'', '', '', 1, 3, 'student.name, student.kanaName, student.email', "
+          + "'must not be blank, must not be blank, must not be blank'",
+      // フィールドに不正な値がある場合（@Email、@Positive対象）
+      "'name', 'kanaName', 'aaa', 0, 2, 'student.email, student.age', "
+          + "'must be a well-formed email address, must be greater than 0'"
+  })
+  void 受講生更新のバリデーションテスト(String name, String kanaName, String email, int age, int expectedErrorCount,
+      String expectedErrorFields, String expectedErrorMessages) throws Exception {
+    String requestBody = String.format("""
+        {
+            "student": {
+                "id": 1,
+                "name": "%s",
+                "kanaName": "%s",
+                "nickname": null,
+                "email": "%s",
+                "livingArea": null,
+                "age": %d,
+                "gender": null,
+                "remark": null,
+                "deleted": false
+            },
+            "courses": [
+                {
+                    "id": 1,
+                    "studentId": 1,
+                    "startDate": "2000-01-01",
+                    "endDueDate": "2000-12-31",
+                    "courseId": 1
+                }
+            ]
+        }
+        """,
+        name,
+        kanaName,
+        email,
+        age
+    );
+
+    mockMvc.perform(MockMvcRequestBuilders.put("/updateStudent")
+            .contentType("application/json")
+            .content(requestBody))
+        .andExpect(status().isBadRequest()) // バリデーションエラーを期待
+        .andExpect(result -> {
+          // 例外を取得
+          MethodArgumentNotValidException ex = (MethodArgumentNotValidException) result.getResolvedException();
+
+          // BindingResultを取得し、すべてのエラーを確認
+          BindingResult bindingResult = ex.getBindingResult();
+          List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+
+          // バリデーションエラーが期待通りの数か確認
+          assertThat(fieldErrors.size()).isEqualTo(expectedErrorCount);
+
+          // フィールド名とエラーメッセージの配列を取得
+          String[] expectedFields = expectedErrorFields.split(",");
+          String[] expectedMessages = expectedErrorMessages.split(",");
+
+          // 各フィールド名とメッセージをトリム（余分なスペースを削除）
+          expectedFields = Arrays.stream(expectedFields).map(String::trim).toArray(String[]::new);
+          expectedMessages = Arrays.stream(expectedMessages).map(String::trim).toArray(String[]::new);
+
+          // 各フィールドのエラーメッセージを確認
+          assertThat(fieldErrors)
+              .extracting(FieldError::getField)
+              .containsExactlyInAnyOrder(expectedFields);
+
+          // 各フィールドのエラーメッセージ内容も確認
+          assertThat(fieldErrors)
+              .extracting(FieldError::getDefaultMessage)
+              .containsExactlyInAnyOrder(expectedMessages);
+        });
+
+  }
+
   @Test
   void 受講生コース登録ができること() throws Exception {
     // JSON形式のリクエストボディを直接指定

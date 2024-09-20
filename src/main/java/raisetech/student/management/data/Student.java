@@ -1,6 +1,9 @@
 package raisetech.student.management.data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,14 +16,28 @@ import raisetech.student.management.domain.StudentDetailForJson;
 public class Student {
 
   private final int id;
+
+  @NotBlank
   private String name;
+
+  @NotBlank
   private String kanaName;
+
   private String nickname;
+
+  @NotBlank
+  @Email
   private String email;
+
   private String livingArea;
+
+  @Positive
   private int age;
+
   private String gender;
+
   private String remark;
+
   private boolean deleted;
 
 //  @Insert用のコンストラクタ
