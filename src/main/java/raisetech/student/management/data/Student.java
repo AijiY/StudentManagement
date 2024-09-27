@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,4 +54,32 @@ public class Student {
     this.remark = studentDetailForJson.getRemark();
     this.deleted = false;
   }
+
+  // テスト用にequalsとhashCodeをオーバーライド
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+
+    Student student = (Student) o;
+
+    return id == student.id &&
+        age == student.age &&
+        deleted == student.deleted &&
+        Objects.equals(name, student.name) &&
+        Objects.equals(kanaName, student.kanaName) &&
+        Objects.equals(nickname, student.nickname) &&
+        Objects.equals(email, student.email) &&
+        Objects.equals(livingArea, student.livingArea) &&
+        Objects.equals(gender, student.gender) &&
+        Objects.equals(remark, student.remark);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name, kanaName, nickname, email, livingArea, age, gender, remark, deleted);
+  }
+
 }

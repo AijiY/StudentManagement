@@ -2,6 +2,7 @@ package raisetech.student.management.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
@@ -19,33 +20,65 @@ class StudentRepositoryTest {
   private StudentRepository sut;
 
   @Test
-  void 受講生情報の全件検索が実施できること_deletedがfalseの受講生数が適切であること() {
+  void 受講生情報の全件検索が実施できること_deletedがfalseの受講生情報が適切であること() {
     List<Student> actual = sut.searchStudents();
-    assertThat(actual.size()).isEqualTo(4);
+
+    List<Student> expected = List.of(
+        new Student(1, "山田太郎", "やまだたろう", "たろう", "taro.yamada@example.com", "東京都新宿区", 20, "男性", "", false),
+        new Student(2, "鈴木花子", "すずきはなこ", "はな", "hanako.suzuki@example.com", "大阪府大阪市", 22, "女性", "", false),
+        new Student(3, "佐藤健", "さとうたける", "たけ", "take.sato@example.com", "愛知県名古屋市", 21, "男性", "", false),
+        new Student(4, "高橋美咲", "たかはしみさき", "みさき", "misaki.takahashi@example.com", "福岡県福岡市", 23, "女性", "", false)
+    );
+
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 
   @Test
-  void 受講生のコース情報の全件検索が実施できること_件数が適切であること() {
+  void 受講生のコース情報の全件検索が実施できること_情報が適切であること() {
     List<StudentCourse> actual = sut.searchStudentCourses();
-    assertThat(actual.size()).isEqualTo(6);
+
+    List<StudentCourse> expected = List.of(
+        new StudentCourse(1, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 1),
+        new StudentCourse(2, 1, LocalDate.of(2024, 4,26), LocalDate.of(2024,8,25), 2),
+        new StudentCourse(3, 2, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 3),
+        new StudentCourse(4, 3, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 1),
+        new StudentCourse(5, 4, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 2),
+        new StudentCourse(6, 5, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 4)
+    );
+
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 
   @Test
   void 受講生IDを指定して受講生情報を検索が実施できること_指定したIDの受講生情報が取得できること() {
+    // IDが1の受講生の情報を取得
     Student actual = sut.searchStudentById(1);
-    assertThat(actual.getId()).isEqualTo(1);
+    // expectedにIDが1の受講生情報を設定
+    Student expected = new Student(1, "山田太郎", "やまだたろう", "たろう", "taro.yamada@example.com", "東京都新宿区", 20, "男性", "", false);
+    // 2つの情報が一致していることを確認
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
   void 受講生IDを指定して受講生のコース情報を検索が実施できること_指定したIDの受講生のコース情報が取得できること() {
     List<StudentCourse> actual = sut.searchStudentCoursesByStudentId(1);
-    assertThat(actual.size()).isEqualTo(2);
+    List<StudentCourse> expected = List.of(
+        new StudentCourse(1, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 1),
+        new StudentCourse(2, 1, LocalDate.of(2024, 4,26), LocalDate.of(2024,8,25), 2)
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 
   @Test
-  void コース情報の全件検索が実施できること_件数が適切であること() {
+  void コース情報の全件検索が実施できること_情報が適切であること() {
     List<Course> actual = sut.searchCourses();
-    assertThat(actual.size()).isEqualTo(4);
+    List<Course> expected = List.of(
+        new Course(1, "Javaコース", 200000),
+        new Course(2, "PHPコース", 180000),
+        new Course(3, "Rubyコース", 150000),
+        new Course(4, "Pythonコース", 250000)
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 
   @Test
@@ -91,15 +124,20 @@ class StudentRepositoryTest {
     Student student = sut.searchStudentById(1);
     // 元の情報を保存
     Student original = student;
-    // nicknameを変更
+    // nicknameとgenderを変更
     student.setNickname("テストニックネーム");
+    student.setGender("不明");
     // 更新
     sut.updateStudent(student);
     Student actual = sut.searchStudentById(1);
-    // nicknameが変更されていることを確認
+    // nicknameとgenderが変更されていることを確認
     assertThat(actual.getNickname()).isEqualTo("テストニックネーム");
-    // 他の情報は変更されていないことを確認（代表としてnameのみ）
-    assertThat(actual.getName()).isEqualTo(original.getName());
+    assertThat(actual.getGender()).isEqualTo("不明");
+    // 他の情報は変更されていないことを確認
+    assertThat(actual)
+        .usingRecursiveComparison()
+        .ignoringFields("nickname", "gender")
+        .isEqualTo(original);
   }
 
   @Test
