@@ -1,6 +1,7 @@
 package raisetech.student.management.data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,22 @@ public class Course {
     this.id = 0;
     this.name = courseForJson.getName();
     this.price = courseForJson.getPrice();
+  }
+
+  // テスト用にequalsとhashCodeをオーバーライド
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Course course = (Course) o;
+    return id == course.id &&
+        price == course.price &&
+        name.equals(course.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name, price);
   }
 
 }
