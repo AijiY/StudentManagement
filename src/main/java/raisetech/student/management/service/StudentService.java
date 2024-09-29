@@ -18,6 +18,7 @@ import raisetech.student.management.service.converter.StudentConverter;
  * 検索や登録、更新などを行う
  */
 @Service
+@Transactional
 public class StudentService {
 
   private StudentRepository repository;
@@ -121,7 +122,7 @@ public class StudentService {
    * 初期コース情報も同時に登録する
    * @param studentDetail（受講生情報＋コース情報）
    */
-  @Transactional
+  @Transactional(rollbackFor = ResourceNotFoundException.class)
   public void registerStudent(StudentDetail studentDetail) throws ResourceNotFoundException {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
