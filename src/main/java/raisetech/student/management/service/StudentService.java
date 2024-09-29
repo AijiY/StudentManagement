@@ -18,6 +18,7 @@ import raisetech.student.management.service.converter.StudentConverter;
  * 検索や登録、更新などを行う
  */
 @Service
+@Transactional
 public class StudentService {
 
   private StudentRepository repository;
@@ -42,12 +43,12 @@ public class StudentService {
    * コースidからコース名も取得して設定
    * @return
    */
-  public List<StudentCourse> searchStudentCourses() {
+  public List<StudentCourse> searchStudentCourses() throws ResourceNotFoundException {
     List<StudentCourse> studentCourses = repository.searchStudentCourses();
-    studentCourses.forEach(studentCourse -> {
-      String courseName = repository.searchCourseNameById(studentCourse.getCourseId());
+    for (StudentCourse studentCourse : studentCourses) {
+      String courseName = searchCourseNameById(studentCourse.getCourseId());
       studentCourse.setCourseName(courseName);
-    });
+    }
     return studentCourses;
   }
 
@@ -57,11 +58,8 @@ public class StudentService {
    * @return
    */
   public Student searchStudentById(int id) throws ResourceNotFoundException {
-    Student student = repository.searchStudentById(id);
-    if (student == null) {
-      throw new ResourceNotFoundException("指定されたIDの受講生は存在しません");
-    }
-    return student;
+    return repository.searchStudentById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生は存在しません"));
   }
 
   /**
@@ -70,12 +68,12 @@ public class StudentService {
    * @param studentId
    * @return
    */
-  public List<StudentCourse> searchStudentCoursesByStudentId(int studentId) {
+  public List<StudentCourse> searchStudentCoursesByStudentId(int studentId) throws ResourceNotFoundException {
     List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(studentId);
-    studentCourses.forEach(studentCourse -> {
-      String courseName = repository.searchCourseNameById(studentCourse.getCourseId());
+    for (StudentCourse studentCourse : studentCourses) {
+      String courseName = searchCourseNameById(studentCourse.getCourseId());
       studentCourse.setCourseName(courseName);
-    });
+    }
     return studentCourses;
   }
 
@@ -84,7 +82,7 @@ public class StudentService {
    * 受講生情報と受講生のコース情報を結合した情報を返却
    * @return 受講生詳細情報一覧
    */
-  public List<StudentDetail> searchStudentDetails() {
+  public List<StudentDetail> searchStudentDetails() throws ResourceNotFoundException {
     List<Student> students = searchStudents();
     List<StudentCourse> studentCourses = searchStudentCourses();
     return converter.convertStudentDetails(students, studentCourses);
@@ -114,8 +112,9 @@ public class StudentService {
    * @param id
    * @return
    */
-  public String searchCourseNameById(int id) {
-    return repository.searchCourseNameById(id);
+  public String searchCourseNameById(int id) throws ResourceNotFoundException {
+    return repository.searchCourseNameById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDのコースは存在しません"));
   }
 
   /**
@@ -123,8 +122,8 @@ public class StudentService {
    * 初期コース情報も同時に登録する
    * @param studentDetail（受講生情報＋コース情報）
    */
-  @Transactional
-  public void registerStudent(StudentDetail studentDetail) {
+  @Transactional(rollbackFor = ResourceNotFoundException.class)
+  public void registerStudent(StudentDetail studentDetail) throws ResourceNotFoundException {
 //    ①受講生情報を登録
     Student student = studentDetail.getStudent();
     repository.insertStudent(student);
@@ -132,7 +131,7 @@ public class StudentService {
 //    ②コース情報を登録
     StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
     studentCourse.setStudentId(student.getId());
-    repository.insertStudentCourse(studentCourse);
+    registerStudentCourse(studentCourse);
   }
 
   @Transactional
@@ -143,7 +142,12 @@ public class StudentService {
   }
 
   @Transactional
-  public void registerStudentCourse(StudentCourse studentCourse) {
+  public void registerStudentCourse(StudentCourse studentCourse) throws ResourceNotFoundException {
+    // courseIdが存在するかを確認
+    searchCourseNameById(studentCourse.getCourseId());
+    // studentIdが存在するかを確認
+    searchStudentById(studentCourse.getStudentId());
+    // 存在する場合は登録
     repository.insertStudentCourse(studentCourse);
   }
 
@@ -154,10 +158,8 @@ public class StudentService {
 
   @Transactional
   public void deleteStudent(int id) throws ResourceConflictException, ResourceNotFoundException {
-    Student student = repository.searchStudentById(id);
-    if (student == null) {
-      throw new ResourceNotFoundException("指定されたIDの受講生は存在しません");
-    }
+    Student student = repository.searchStudentById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生は存在しません"));
     if (student.isDeleted()) {
       throw new ResourceConflictException("既に削除されている受講生です");
     }
