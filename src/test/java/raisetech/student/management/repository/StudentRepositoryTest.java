@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +53,10 @@ class StudentRepositoryTest {
   @Test
   void 受講生IDを指定して受講生情報を検索が実施できること_指定したIDの受講生情報が取得できること() {
     // IDが1の受講生の情報を取得
-    Student actual = sut.searchStudentById(1);
+    Optional<Student> actual = sut.searchStudentById(1);
     // expectedにIDが1の受講生情報を設定
-    Student expected = new Student(1, "山田太郎", "やまだたろう", "たろう", "taro.yamada@example.com", "東京都新宿区", 20, "男性", "", false);
+    Student student = new Student(1, "山田太郎", "やまだたろう", "たろう", "taro.yamada@example.com", "東京都新宿区", 20, "男性", "", false);
+    Optional<Student> expected = Optional.of(student);
     // 2つの情報が一致していることを確認
     assertThat(actual).isEqualTo(expected);
   }
@@ -83,8 +85,9 @@ class StudentRepositoryTest {
 
   @Test
   void コースIDを指定してコース名を検索が実施できること_指定したIDのコース名が取得できること() {
-    String actual = sut.searchCourseNameById(1);
-    assertThat(actual).isEqualTo("Javaコース");
+    Optional<String> actual = sut.searchCourseNameById(1);
+    Optional<String> expected = Optional.of("Javaコース");
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
@@ -121,7 +124,8 @@ class StudentRepositoryTest {
 
   @Test
   void 受講生情報の更新が実施できること_更新に使用した情報と更新後の情報が一致していること() {
-    Student student = sut.searchStudentById(1);
+    Optional<Student> studentOptional = sut.searchStudentById(1);
+    Student student = studentOptional.get();
     // 元の情報を保存
     Student original = student;
     // nicknameとgenderを変更
@@ -129,7 +133,8 @@ class StudentRepositoryTest {
     student.setGender("不明");
     // 更新
     sut.updateStudent(student);
-    Student actual = sut.searchStudentById(1);
+    Optional<Student> actualOptional = sut.searchStudentById(1);
+    Student actual = actualOptional.get();
     // nicknameとgenderが変更されていることを確認
     assertThat(actual.getNickname()).isEqualTo("テストニックネーム");
     assertThat(actual.getGender()).isEqualTo("不明");
@@ -143,7 +148,8 @@ class StudentRepositoryTest {
   @Test
   void 受講生情報の論理削除が実施できること_削除フラグがtrueになっていること() {
     sut.deleteStudent(1);
-    Student actual = sut.searchStudentById(1);
+    Optional<Student> actualOptional = sut.searchStudentById(1);
+    Student actual = actualOptional.get();
     assertThat(actual.isDeleted()).isTrue();
   }
 }

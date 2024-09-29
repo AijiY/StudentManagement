@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +45,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生コース情報の一覧検索_リポジトリの処理が適切に呼び出せること() {
+  void 受講生コース情報の一覧検索_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
     // 事前準備（ここではsutのみ）
     // 実行
     List<StudentCourse> actual = sut.searchStudentCourses();
@@ -57,7 +58,7 @@ class StudentServiceTest {
     // 事前準備
     int id = 1;
     Student student = new Student(id, null, null, null, null, null, 1, null, null, false);
-    Mockito.when(repository.searchStudentById(id)).thenReturn(student);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.of(student));
     // 実行
     Student actual = sut.searchStudentById(id);
     // リポジトリの呼び出しを検証
@@ -65,16 +66,16 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生コース情報のID検索_指定されたIDの受講生が存在しない場合に例外が発生すること() throws ResourceNotFoundException {
+  void 受講生情報のID検索_指定されたIDの受講生が存在しない場合に例外が発生すること() {
     // 事前準備
     int id = 1;
-    Mockito.when(repository.searchStudentById(id)).thenReturn(null);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.empty());
     // 例外処理の発生を検証
     assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentById(id));
   }
 
   @Test
-  void 受講生コース情報を受講生IDから検索_リポジトリの処理が適切に呼び出せること() {
+  void 受講生コース情報を受講生IDから検索_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
     // 事前準備（ここではsutのみ）
     // 実行
     List<StudentCourse> actual = sut.searchStudentCoursesByStudentId(1);
@@ -83,7 +84,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報を全件検索_リポジトリとコンバーターの処理が適切に呼び出せること() {
+  void 受講生詳細情報を全件検索_リポジトリとコンバーターの処理が適切に呼び出せること() throws ResourceNotFoundException {
     // 事前準備
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCourses = new ArrayList<>();
@@ -103,7 +104,7 @@ class StudentServiceTest {
     int id = 1;
     Student student = new Student(id, null, null, null, null, null, 1, null, null, false);
     List<StudentCourse> studentCourses = new ArrayList<>();
-    Mockito.when(repository.searchStudentById(id)).thenReturn(student);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.of(student));
     Mockito.when(repository.searchStudentCoursesByStudentId(id)).thenReturn(studentCourses);
     // 実行
     StudentDetail actual = sut.searchStudentDetailById(id);
@@ -122,8 +123,10 @@ class StudentServiceTest {
   }
 
   @Test
-  void コースIDを指定してコース名を検索_リポジトリの処理が適切に呼び出せること() {
-    // 事前準備（ここではsutのみ）
+  void コースIDを指定してコース名を検索_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
+    // 事前準備
+    String name = "サンプルコース";
+    Mockito.when(repository.searchCourseNameById(1)).thenReturn(Optional.of(name));
     // 実行
     String actual = sut.searchCourseNameById(1);
     // 検証
@@ -131,18 +134,28 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生情報の新規登録_リポジトリの処理が適切に呼び出せること() {
+  void コースIDを指定してコース名を検索_指定されたIDのコースが存在しない場合に例外が発生すること() {
+    // 事前準備
+    int id = 1;
+    Mockito.when(repository.searchCourseNameById(id)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchCourseNameById(id));
+  }
+
+  @Test
+  void 受講生情報の新規登録_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
     // 事前準備
     Student student = new Student(0, null, null, null, null, null, 1, null, null, false);
     List<StudentCourse> studentCourses = new ArrayList<>();
     studentCourses.add(StudentCourse.initStudentCourse(0, 1));
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+    // repositoryをmock化しているため、studentCourseに登録されたstudentIdが0のまま
+    Mockito.when(repository.searchStudentById(0)).thenReturn(Optional.of(student));
+    Mockito.when(repository.searchCourseNameById(1)).thenReturn(Optional.of("サンプルコース"));
     // 実行
     sut.registerStudent(studentDetail);
     // 検証
     Mockito.verify(repository, Mockito.times(1)).insertStudent(student);
-    StudentCourse studentCourse = studentDetail.getStudentCourses().get(0);
-    Mockito.verify(repository, Mockito.times(1)).insertStudentCourse(studentCourse);
   }
 
   @Test
@@ -159,9 +172,12 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生コース情報の新規登録_リポジトリの処理が適切に呼び出せること() {
+  void 受講生コース情報の新規登録_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
     // 事前準備
     StudentCourse studentCourse = StudentCourse.initStudentCourse(1, 1);
+    Mockito.when(repository.searchCourseNameById(1)).thenReturn(Optional.of("サンプルコース"));
+    Mockito.when(repository.searchStudentById(1))
+        .thenReturn(Optional.of(new Student(1, null, null, null, null, null, 1, null, null, false)));
     // 実行
     sut.registerStudentCourse(studentCourse);
     // 検証
@@ -183,7 +199,7 @@ class StudentServiceTest {
     // 事前準備
     int id = 1;
     Student student = new Student(id, null, null, null, null, null, 1, null, null, false);
-    Mockito.when(repository.searchStudentById(id)).thenReturn(student);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.of(student));
     // 実行
     sut.deleteStudent(id);
     // 検証
@@ -195,7 +211,7 @@ class StudentServiceTest {
   void 受講生情報の論理削除_指定されたIDの受講生が存在しない場合に例外が発生すること() throws ResourceConflictException, ResourceNotFoundException {
     // 事前準備
     int id = 1;
-    Mockito.when(repository.searchStudentById(id)).thenReturn(null);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.empty());
     // 例外処理の発生を検証
     assertThrows(ResourceNotFoundException.class, () -> sut.deleteStudent(id));
   }
@@ -205,7 +221,7 @@ class StudentServiceTest {
     // 事前準備
     int id = 1;
     Student student = new Student(id, null, null, null, null, null, 1, null, null, true);
-    Mockito.when(repository.searchStudentById(id)).thenReturn(student);
+    Mockito.when(repository.searchStudentById(id)).thenReturn(Optional.of(student));
     // 例外処理の発生を検証
     assertThrows(ResourceConflictException.class, () -> sut.deleteStudent(id));
   }

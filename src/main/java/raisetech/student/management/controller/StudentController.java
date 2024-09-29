@@ -47,7 +47,7 @@ public class StudentController {
    */
   @Operation(summary = "受講生一覧検索", description = "全ての受講生情報を取得します")
   @GetMapping("/students")
-  public List<StudentDetail> getStudents() {
+  public List<StudentDetail> getStudents() throws ResourceNotFoundException {
 
     List<StudentDetail> studentDetails = service.searchStudentDetails();
 
@@ -75,20 +75,22 @@ public class StudentController {
    */
   @Operation(summary = "受講生登録", description = "新規の受講生情報（初期コース情報含む）を登録します")
   @PostMapping("/registerStudent")
-  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid StudentDetailForJson studentDetailForJson) {
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody @Valid StudentDetailForJson studentDetailForJson) throws ResourceNotFoundException {
     Student student = new Student(studentDetailForJson);
     StudentCourse studentCourse = StudentCourse.initStudentCourse(0, studentDetailForJson.getCourseId()); // この時点でidは不明なので0
     StudentDetail studentDetail = new StudentDetail(student, List.of(studentCourse));
     service.registerStudent(studentDetail);
 
-    studentDetail.getStudentCourses().forEach(sc -> sc.setCourseName(service.searchCourseNameById(sc.getCourseId())));
+    for (StudentCourse sc : studentDetail.getStudentCourses()) {
+      sc.setCourseName(service.searchCourseNameById(sc.getCourseId()));
+    }
     return ResponseEntity.ok(studentDetail);
   }
 
   /**
    * 受講生更新
    * @param studentDetail
-   * @return 更新した受講生詳細情報
+   * @return 更新した受講生詳細情報SELEC
    */
   @Operation(summary = "受講生更新", description = "指定された受講生情報を更新します")
   @PutMapping("/updateStudent")
@@ -106,7 +108,7 @@ public class StudentController {
   @Operation(summary = "受講生コース登録", description = "指定された受講生に対して指定されたコースを登録します")
   @PostMapping("/registerStudentCourse")
   public ResponseEntity<StudentCourse> registerStudentCourse
-    (@RequestBody @Valid StudentCourseForJson studentCourseForJson) {
+    (@RequestBody @Valid StudentCourseForJson studentCourseForJson) throws ResourceNotFoundException {
     StudentCourse studentCourse = StudentCourse.initStudentCourse(
         studentCourseForJson.getStudentId(), studentCourseForJson.getCourseId());
     service.registerStudentCourse(studentCourse);
