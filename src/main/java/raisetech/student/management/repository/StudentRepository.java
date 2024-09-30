@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 
 /**
  * 受講生情報を扱うリポジトリ
@@ -83,5 +84,55 @@ public interface StudentRepository {
    * @param id
    */
   void deleteStudent(int id);
+
+  /**
+   * 受講生のコース申し込み状況を全件検索
+   * @return 受講生のコース申し込み状況一覧
+   */
+  List<StudentCourseStatus> searchStudentCourseStatuses();
+
+  /**
+   * 受講生のコース申し込み状況をIDを指定して検索
+   * @param id
+   * @return 受講生のコース申し込み状況
+   */
+  Optional<StudentCourseStatus> searchStudentCourseStatusById(int id);
+
+  /**
+   * 受講生のコース申し込み状況を受講生コースIDを指定して検索
+   * @param studentCourseId
+   * @return 受講生のコース申し込み状況
+   */
+  Optional<StudentCourseStatus> searchStudentCourseStatusByStudentCourseId(int studentCourseId);
+
+  /**
+   * 受講生のコース申し込み状況を新規登録
+   * @param studentCourseStatus
+   */
+  void insertStudentCourseStatus(StudentCourseStatus studentCourseStatus);
+
+  /**
+   * 受講生のコース申し込み状況を受講中に更新
+   * @param studentCourseId
+   */
+  void updateStudentCourseStatusInProgress(int studentCourseId);
+
+  /**
+   * 受講生のコース申し込み状況を完了に更新
+   * @param studentCourseId
+   */
+  void updateStudentCourseStatusCompleted(int studentCourseId);
+
+  /**
+   * 受講生コース情報をIDを指定して検索
+   * @param id
+   */
+  Optional<StudentCourse> searchStudentCourseById(int id);
+
+  /**
+   * 受講生コース情報を更新
+   * @param studentCourse
+   */
+  void updateStudentCourse(StudentCourse studentCourse);
 }
 

@@ -2,6 +2,7 @@ package raisetech.student.management.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
@@ -182,6 +184,7 @@ class StudentServiceTest {
     sut.registerStudentCourse(studentCourse);
     // 検証
     Mockito.verify(repository, Mockito.times(1)).insertStudentCourse(studentCourse);
+    Mockito.verify(repository, Mockito.times(1)).insertStudentCourseStatus(Mockito.any(StudentCourseStatus.class));
   }
 
   @Test
@@ -225,4 +228,174 @@ class StudentServiceTest {
     // 例外処理の発生を検証
     assertThrows(ResourceConflictException.class, () -> sut.deleteStudent(id));
   }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException, ResourceConflictException {
+    // privateメソッドの部分も同時にテスト
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "仮申し込み") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    StudentCourse studentCourse = new StudentCourse(studentCourseId, 1, LocalDate.now(), LocalDate.now().plusWeeks(16), 1);
+    Mockito.when(repository.searchStudentCourseById(1)).thenReturn(Optional.of(studentCourse));
+    // 実行
+    sut.updateStudentCourseStatusInProgress(studentCourseId);
+    // 検証
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseStatusByStudentCourseId(studentCourseId);
+    Mockito.verify(repository, Mockito.times(1)).updateStudentCourseStatusInProgress(studentCourseId);
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseById(studentCourseId);
+    Mockito.verify(repository, Mockito.times(1)).updateStudentCourse(studentCourse);
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_指定されたIDの受講生コース申し込み状況が存在しない場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudentCourseStatusInProgress(studentCourseId));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_指定されたIDの受講生コースが既に受講中の場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "受講中") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusInProgress(studentCourseId));
+    assert(exception.getMessage().contains("既に受講中の受講生コースです"));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_指定されたIDの受講生コースが完了の場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "完了") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusInProgress(studentCourseId));
+    assert(exception.getMessage().contains("既に完了している受講生コースです"));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_指定されたIDの受講生コースの状態が不正の場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "不正な状態") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusInProgress(studentCourseId));
+    assert(exception.getMessage().contains("申し込み状況が不正です"));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講中への更新_指定されたIDの受講生コースが存在しない場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "仮申し込み") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(studentCourseId)).thenReturn(Optional.of(studentCourseStatus));
+    Mockito.when(repository.searchStudentCourseById(studentCourseId)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudentCourseStatusInProgress(studentCourseId));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の完了への更新_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException, ResourceConflictException {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "受講中") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 実行
+    sut.updateStudentCourseStatusCompleted(studentCourseId);
+    // 検証
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseStatusByStudentCourseId(studentCourseId);
+    Mockito.verify(repository, Mockito.times(1)).updateStudentCourseStatusCompleted(studentCourseId);
+  }
+
+  @Test
+  void 受講生コース申し込み状況の完了への更新_指定されたIDの受講生コースが存在しない場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudentCourseStatusCompleted(studentCourseId));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の完了への更新_指定されたIDの受講生コースが既に完了の場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "完了") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusCompleted(studentCourseId));
+    assert(exception.getMessage().contains("既に完了している受講生コースです"));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の完了への更新_指定されたIDの受講生コースが仮申し込みの場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "仮申し込み") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusCompleted(studentCourseId));
+    assert(exception.getMessage().contains("仮申し込みの受講生コースは完了できません"));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の完了への更新_指定されたIDの受講生コースの状態が不正の場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "不正な状態") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 例外処理の発生を検証（メッセージ含む）
+    ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> sut.updateStudentCourseStatusCompleted(studentCourseId));
+    assert(exception.getMessage().contains("申し込み状況が不正です"));
+  }
+
+  @Test
+  void 受講生コース情報のID検索_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
+    // 事前準備
+    int id = 1;
+    StudentCourse studentCourse = new StudentCourse(id, 1, LocalDate.now(),
+        LocalDate.now().plusWeeks(16), 1);
+    Mockito.when(repository.searchStudentCourseById(id)).thenReturn(Optional.of(studentCourse));
+    // 実行
+    StudentCourse actual = sut.searchStudentCourseById(id);
+    //
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseById(id);
+  }
+
+  @Test
+  void 受講生コース情報のID検索_指定されたIDの受講生コースが存在しない場合に例外が発生すること() {
+    // 事前準備
+    int id = 1;
+    Mockito.when(repository.searchStudentCourseById(id)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentCourseById(id));
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講生コースIDによる検索_リポジトリの処理が適切に呼び出せること() throws ResourceNotFoundException {
+    // 事前準備
+    int studentCourseId = 1;
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(1, studentCourseId, "仮申し込み") ;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.of(studentCourseStatus));
+    // 実行
+    StudentCourseStatus actual = sut.searchStudentCourseStatusByStudentCourseId(studentCourseId);
+    // 検証
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseStatusByStudentCourseId(studentCourseId);
+  }
+
+  @Test
+  void 受講生コース申し込み状況の受講生コースIDによる検索_指定されたIDの受講生コース申し込み状況が存在しない場合に例外が発生すること() {
+    // 事前準備
+    int studentCourseId = 1;
+    Mockito.when(repository.searchStudentCourseStatusByStudentCourseId(1)).thenReturn(Optional.empty());
+    // 例外処理の発生を検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentCourseStatusByStudentCourseId(studentCourseId));
+  }
+
 }

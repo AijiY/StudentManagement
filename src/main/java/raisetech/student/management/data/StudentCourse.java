@@ -43,8 +43,9 @@ public class StudentCourse {
    * @return
    */
   public static StudentCourse initStudentCourse(int studentId, int courseId) {
-    LocalDate now = LocalDate.now();
-    return new StudentCourse(studentId, now, now.plusWeeks(16), courseId);
+    // 仮登録用に受講開始日を1週間後に設定
+    LocalDate startDate = LocalDate.now().plusWeeks(1);
+    return new StudentCourse(studentId, startDate, startDate.plusWeeks(16), courseId);
   }
 
   // テスト用にequalsとhashCodeをオーバーライド
