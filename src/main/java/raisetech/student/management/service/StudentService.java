@@ -224,4 +224,19 @@ public class StudentService {
     return repository.searchStudentCourseStatusByStudentCourseId(studentCourseId)
         .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース申し込み状況は存在しません"));
   }
+
+
+  public List<StudentDetail> searchStudentDetailsInProgress() {
+    List<Student> students = repository.searchStudents();
+    List<StudentCourse> studentCourses = repository.searchStudentCourses();
+    List<StudentCourseStatus> studentCourseStatusesInProgress = repository.searchStudentCourseStatusesInProgress();
+    return converter.convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatusesInProgress);
+  }
+
+  public List<StudentDetail> searchStudentDetailsPreEnrollment() {
+    List<Student> students = repository.searchStudents();
+    List<StudentCourse> studentCourses = repository.searchStudentCourses();
+    List<StudentCourseStatus> studentCourseStatusesPreEnrollment = repository.searchStudentCourseStatusesPreEnrollment();
+    return converter.convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatusesPreEnrollment);
+  }
 }

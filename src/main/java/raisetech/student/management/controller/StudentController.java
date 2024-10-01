@@ -184,4 +184,24 @@ public class StudentController {
     return ResponseEntity.ok(studentCourseStatus);
   }
 
+  /**
+   * 受講中の受講生一覧検索
+   * @return 受講中の受講生詳細一覧
+   */
+  @GetMapping("/students/inProgress")
+  public List<StudentDetail> getStudentsInProgress() {
+    List<StudentDetail> studentDetails = service.searchStudentDetailsInProgress();
+    return studentDetails;
+  }
+
+  /**
+   * 仮申し込みの受講生一覧検索
+   * @return 仮申し込みの受講生詳細一覧
+   */
+  @GetMapping("/students/preEnrollment")
+  public List<StudentDetail> getStudentsPreEnrollment() {
+    List<StudentDetail> studentDetails = service.searchStudentDetailsPreEnrollment();
+    return studentDetails;
+  }
+
 }
