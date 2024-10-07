@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.StudentDetail;
 
 class StudentConverterTest {
@@ -104,5 +105,53 @@ class StudentConverterTest {
         .anyMatch(studentCourse -> studentCourse.getId() == 3)).isFalse();
   }
 
+  @Test
+  void 申し込み状況に該当するものに限定して受講生詳細の変換でStudentCourseStatusに含まれるStudentCourseのみマッピングされること() {
+    // 事前準備
+    List<Student> students = new ArrayList<>(List.of(
+        new Student(1, "AAA", "aaa", null, "aaa@example.com", null, 1, null, null, false),
+        new Student(2, "BBB", "bbb", null, "bbb@example.com", null, 2, null, null, false)
+    ));
+    List<StudentCourse> studentCourses = new ArrayList<>(List.of(
+        new StudentCourse(1, 1, null, null, 1),
+        new StudentCourse(2, 1, null, null, 2),
+        new StudentCourse(3, 2, null, null, 1)
+    ));
+    List<StudentCourseStatus> studentCourseStatuses = new ArrayList<>(List.of(
+        new StudentCourseStatus(2, 2, "受講中")
+    ));
+    // 実行
+    List<StudentDetail> actual = sut.convertStudentDetailsWithStatus(students, studentCourses,
+        studentCourseStatuses);
+    // 検証
+    // actualのサイズが1であること
+    assertThat(actual.size()).isEqualTo(1);
+    // actualのStudentIdが1であること
+    assertThat(actual.get(0).getStudent().getId()).isEqualTo(1);
+    // actualのStudentCourseのサイズが1であること
+    assertThat(actual.get(0).getStudentCourses().size()).isEqualTo(1);
+    // actualのStudentCourseのIdが2であること
+    assertThat(actual.get(0).getStudentCourses().get(0).getId()).isEqualTo(2);
+  }
 
+  @Test
+  void 申し込み状況に該当するものに限定して受講生詳細の変換でStudentCourseStatusが空である場合はからのListが返されること() {
+    // 事前準備
+    List<Student> students = new ArrayList<>(List.of(
+        new Student(1, "AAA", "aaa", null, "aaa@example.com", null, 1, null, null, false),
+        new Student(2, "BBB", "bbb", null, "bbb@example.com", null, 2, null, null, false)
+    ));
+    List<StudentCourse> studentCourses = new ArrayList<>(List.of(
+        new StudentCourse(1, 1, null, null, 1),
+        new StudentCourse(2, 1, null, null, 2),
+        new StudentCourse(3, 2, null, null, 1)
+    ));
+    List<StudentCourseStatus> studentCourseStatuses = new ArrayList<>();
+    // 実行
+    List<StudentDetail> actual = sut.convertStudentDetailsWithStatus(students, studentCourses,
+        studentCourseStatuses);
+    // 検証
+    // actualが空であること
+    assertThat(actual.size()).isEqualTo(0);
+  }
 }

@@ -21,3 +21,12 @@ INSERT INTO student_courses (student_id, start_date, end_due_date, course_id) VA
 (3, '2024-01-01', '2024-04-25', 1),
 (4, '2024-01-01', '2024-04-25', 2),
 (5, '2024-01-01', '2024-04-25', 4);
+
+-- Insert data into the student_course_statuses table
+INSERT INTO student_course_statuses (student_course_id, status) VALUES
+(1, '受講中'),
+(2, '受講中'),
+(3, '受講中'),
+(4, '受講中'),
+(5, '仮申し込み'),
+(6, '完了');

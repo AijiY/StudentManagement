@@ -24,3 +24,9 @@ CREATE TABLE courses (
     name VARCHAR(20) NOT NULL,
     price INT
 );
+
+CREATE TABLE student_course_statuses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_course_id INT NOT NULL UNIQUE,
+    status VARCHAR(10) NOT NULL
+);

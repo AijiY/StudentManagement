@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.CourseForJson;
 import raisetech.student.management.domain.StudentDetailForJson;
 
@@ -151,5 +152,109 @@ class StudentRepositoryTest {
     Optional<Student> actualOptional = sut.searchStudentById(1);
     Student actual = actualOptional.get();
     assertThat(actual.isDeleted()).isTrue();
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況の全件検索ができること_情報が適切であること() {
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatuses();
+    List<StudentCourseStatus> expected = List.of(
+        new StudentCourseStatus(1, 1, "受講中"),
+        new StudentCourseStatus(2, 2, "受講中"),
+        new StudentCourseStatus(3, 3, "受講中"),
+        new StudentCourseStatus(4, 4, "受講中"),
+        new StudentCourseStatus(5, 5, "仮申し込み"),
+        new StudentCourseStatus(6, 6, "完了")
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況のIDを指定して検索ができること_指定したIDの情報が取得できること() {
+    Optional<StudentCourseStatus> actual = sut.searchStudentCourseStatusById(1);
+    StudentCourseStatus expected = new StudentCourseStatus(1, 1, "受講中");
+    assertThat(actual).isEqualTo(Optional.of(expected));
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況を受講生コースIDを指定して検索ができること_指定したIDの情報が取得できること() {
+    Optional<StudentCourseStatus> actual = sut.searchStudentCourseStatusByStudentCourseId(1);
+    StudentCourseStatus expected = new StudentCourseStatus(1, 1, "受講中");
+    assertThat(actual).isEqualTo(Optional.of(expected));
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況が新規登録できること_登録前後で件数が1件増えていること() {
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(100);
+    int countPresentStudentCourseStatuses = sut.searchStudentCourseStatuses().size();
+    sut.insertStudentCourseStatus(studentCourseStatus);
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatuses();
+    assertThat(actual.size()).isEqualTo(countPresentStudentCourseStatuses + 1);
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況を受講中に更新できること_更新前後で状況が変わっていること() {
+    sut.updateStudentCourseStatusInProgress(5);
+    Optional<StudentCourseStatus> actualOptional = sut.searchStudentCourseStatusById(5);
+    StudentCourseStatus actual = actualOptional.get();
+    assertThat(actual.getStatus()).isEqualTo("受講中");
+  }
+
+  @Test
+  void 受講生コース情報の申し込み状況を完了に更新できること_更新前後で状況が変わっていること() {
+    sut.updateStudentCourseStatusCompleted(4);
+    Optional<StudentCourseStatus> actualOptional = sut.searchStudentCourseStatusById(4);
+    StudentCourseStatus actual = actualOptional.get();
+    assertThat(actual.getStatus()).isEqualTo("完了");
+  }
+
+  @Test
+  void 受講生コース情報をIDを指定して検索ができること_指定したIDの情報が取得できること() {
+    Optional<StudentCourse> actual = sut.searchStudentCourseById(1);
+    StudentCourse expected = new StudentCourse(1, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 1);
+    assertThat(actual).isEqualTo(Optional.of(expected));
+  }
+
+  @Test
+  void 受講生コース情報の更新ができること_更新前後で情報が変わっていること() {
+    Optional<StudentCourse> studentCourseOptional = sut.searchStudentCourseById(1);
+    StudentCourse studentCourse = studentCourseOptional.get();
+    // 元の情報を保存
+    StudentCourse original = studentCourse;
+    // startDateとendDueDateを変更
+    studentCourse.setStartDate(LocalDate.of(2024, 1, 2));
+    studentCourse.setEndDueDate(LocalDate.of(2024, 4, 26));
+    // 更新
+    sut.updateStudentCourse(studentCourse);
+    Optional<StudentCourse> actualOptional = sut.searchStudentCourseById(1);
+    StudentCourse actual = actualOptional.get();
+    // startDateとendDueDateが変更されていることを確認
+    assertThat(actual.getStartDate()).isEqualTo(LocalDate.of(2024, 1, 2));
+    assertThat(actual.getEndDueDate()).isEqualTo(LocalDate.of(2024, 4, 26));
+    // 他の情報は変更されていないことを確認
+    assertThat(actual)
+        .usingRecursiveComparison()
+        .ignoringFields("startDate", "endDueDate")
+        .isEqualTo(original);
+  }
+
+  @Test
+  void 仮申し込みの受講生コース情報の申し込み状況を全件検索ができること_情報が適切であること() {
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatusesPreEnrollment();
+    List<StudentCourseStatus> expected = List.of(
+        new StudentCourseStatus(5, 5, "仮申し込み")
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+  }
+
+  @Test
+  void 受講中の受講生コース情報の申し込み状況を全件検索ができること_情報が適切であること() {
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatusesInProgress();
+    List<StudentCourseStatus> expected = List.of(
+        new StudentCourseStatus(1, 1, "受講中"),
+        new StudentCourseStatus(2, 2, "受講中"),
+        new StudentCourseStatus(3, 3, "受講中"),
+        new StudentCourseStatus(4, 4, "受講中")
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 }

@@ -1,5 +1,6 @@
 package raisetech.student.management.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
@@ -147,8 +149,9 @@ public class StudentService {
     searchCourseNameById(studentCourse.getCourseId());
     // studentIdが存在するかを確認
     searchStudentById(studentCourse.getStudentId());
-    // 存在する場合は登録
+    // 存在する場合は登録（同時に申し込み状況を新規登録）
     repository.insertStudentCourse(studentCourse);
+    repository.insertStudentCourseStatus(new StudentCourseStatus(studentCourse.getId()));
   }
 
   @Transactional
@@ -165,5 +168,75 @@ public class StudentService {
     }
 
     repository.deleteStudent(id);
+  }
+
+  @Transactional(rollbackFor = ResourceNotFoundException.class)
+  public void updateStudentCourseStatusInProgress(int studentCourseId) throws ResourceNotFoundException, ResourceConflictException {
+    // 存在する受講生コースIDかを確認
+    StudentCourseStatus studentCourseStatus = repository.searchStudentCourseStatusByStudentCourseId(studentCourseId)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース申し込み状況は存在しません"));
+    // 現在の申し込み状況が仮申し込みでない場合はResourceConflictExceptionをスロー
+    if (studentCourseStatus.getStatus().equals("受講中")) {
+      throw new ResourceConflictException("既に受講中の受講生コースです");
+    } else if (studentCourseStatus.getStatus().equals("完了")) {
+      throw new ResourceConflictException("既に完了している受講生コースです");
+    } else if (!studentCourseStatus.getStatus().equals("仮申し込み")) {
+      throw new ResourceConflictException("申し込み状況が不正です");
+    }
+    // 問題なければ受講中に更新
+    repository.updateStudentCourseStatusInProgress(studentCourseId);
+    // startDateとendDueDateを設定
+    updateStudentCourseDateInProgress(studentCourseId);
+  }
+
+  private void updateStudentCourseDateInProgress(int studentCourseId) throws ResourceNotFoundException {
+    StudentCourse studentCourse = repository.searchStudentCourseById(studentCourseId)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース情報は存在しません"));
+    LocalDate now = LocalDate.now();
+    studentCourse.setStartDate(now);
+    studentCourse.setEndDueDate(now.plusWeeks(16));
+    repository.updateStudentCourse(studentCourse);
+  }
+
+  @Transactional
+  public void updateStudentCourseStatusCompleted(int studentCourseId) throws ResourceNotFoundException, ResourceConflictException {
+    // 存在する受講生コースIDかを確認
+    StudentCourseStatus studentCourseStatus = repository.searchStudentCourseStatusByStudentCourseId(studentCourseId)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース情報は存在しません"));
+    // 現在の申し込み状況が受講中でない場合はResourceConflictExceptionをスロー
+    if (studentCourseStatus.getStatus() == "完了") {
+      throw new ResourceConflictException("既に完了している受講生コースです");
+    } else if (studentCourseStatus.getStatus() == "仮申し込み") {
+      throw new ResourceConflictException("仮申し込みの受講生コースは完了できません");
+    } else if (!studentCourseStatus.getStatus().equals("受講中")) {
+      throw new ResourceConflictException("申し込み状況が不正です");
+    }
+    // 問題なければ完了に更新
+    repository.updateStudentCourseStatusCompleted(studentCourseId);
+  }
+
+  public StudentCourse searchStudentCourseById(int id) throws ResourceNotFoundException {
+    return repository.searchStudentCourseById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース情報は存在しません"));
+  }
+
+  public StudentCourseStatus searchStudentCourseStatusByStudentCourseId(int studentCourseId) throws ResourceNotFoundException {
+    return repository.searchStudentCourseStatusByStudentCourseId(studentCourseId)
+        .orElseThrow(() -> new ResourceNotFoundException("指定されたIDの受講生コース申し込み状況は存在しません"));
+  }
+
+
+  public List<StudentDetail> searchStudentDetailsInProgress() {
+    List<Student> students = repository.searchStudents();
+    List<StudentCourse> studentCourses = repository.searchStudentCourses();
+    List<StudentCourseStatus> studentCourseStatusesInProgress = repository.searchStudentCourseStatusesInProgress();
+    return converter.convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatusesInProgress);
+  }
+
+  public List<StudentDetail> searchStudentDetailsPreEnrollment() {
+    List<Student> students = repository.searchStudents();
+    List<StudentCourse> studentCourses = repository.searchStudentCourses();
+    List<StudentCourseStatus> studentCourseStatusesPreEnrollment = repository.searchStudentCourseStatusesPreEnrollment();
+    return converter.convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatusesPreEnrollment);
   }
 }

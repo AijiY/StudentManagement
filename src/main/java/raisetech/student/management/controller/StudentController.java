@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.CourseForJson;
 import raisetech.student.management.domain.ResponseForDelete;
 import raisetech.student.management.domain.StudentCourseForJson;
+import raisetech.student.management.domain.StudentCourseWithStatus;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.domain.StudentDetailForJson;
 import raisetech.student.management.exception.ResourceConflictException;
@@ -146,6 +148,60 @@ public class StudentController {
     boolean deleted = service.searchStudentById(id).isDeleted();
     ResponseForDelete response = new ResponseForDelete(id, deleted);
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * 受講生コース申し込み状況を「受講中」に更新
+   * @param studentCourseId
+   * @return 更新後の受講生コース情報（申し込み状況含む）
+   */
+  @Operation(summary = "受講生コース申し込み状況を「受講中」に更新", description = "指定されたIDの受講生コースの申し込み状況を「受講中」に更新します")
+  @PatchMapping("/updateStudentCourseStatusInProgress/{studentCourseId}")
+  public ResponseEntity<StudentCourseWithStatus> updateStudentCourseStatusInProgress(@PathVariable @Positive int studentCourseId)
+      throws ResourceNotFoundException, ResourceConflictException {
+    service.updateStudentCourseStatusInProgress(studentCourseId);
+
+    StudentCourse studentCourse = service.searchStudentCourseById(studentCourseId);
+    StudentCourseStatus studentCourseStatus = service.searchStudentCourseStatusByStudentCourseId(studentCourseId);
+    StudentCourseWithStatus studentCourseWithStatus = new StudentCourseWithStatus(studentCourse, studentCourseStatus);
+
+    return ResponseEntity.ok(studentCourseWithStatus);
+  }
+
+  /**
+   * 受講生コース申し込み状況を「受講完了」に更新
+   * @param studentCourseId
+   * @return 更新後の受講生コース情報（申し込み状況含む）
+   */
+  @Operation(summary = "受講生コース申し込み状況を「完了」に更新", description = "指定されたIDの受講生コースの申し込み状況を「完了」に更新します")
+  @PatchMapping("/updateStudentCourseStatusCompleted/{studentCourseId}")
+  public ResponseEntity<StudentCourseStatus> updateStudentCourseStatusCompleted(@PathVariable @Positive int studentCourseId)
+      throws ResourceNotFoundException, ResourceConflictException {
+    service.updateStudentCourseStatusCompleted(studentCourseId);
+
+    StudentCourseStatus studentCourseStatus = service.searchStudentCourseStatusByStudentCourseId(studentCourseId);
+
+    return ResponseEntity.ok(studentCourseStatus);
+  }
+
+  /**
+   * 受講中の受講生一覧検索
+   * @return 受講中の受講生詳細一覧
+   */
+  @GetMapping("/students/inProgress")
+  public List<StudentDetail> getStudentsInProgress() {
+    List<StudentDetail> studentDetails = service.searchStudentDetailsInProgress();
+    return studentDetails;
+  }
+
+  /**
+   * 仮申し込みの受講生一覧検索
+   * @return 仮申し込みの受講生詳細一覧
+   */
+  @GetMapping("/students/preEnrollment")
+  public List<StudentDetail> getStudentsPreEnrollment() {
+    List<StudentDetail> studentDetails = service.searchStudentDetailsPreEnrollment();
+    return studentDetails;
   }
 
 }

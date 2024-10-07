@@ -26,6 +26,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import raisetech.student.management.data.Course;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.data.StudentCourseStatus;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.exception.ResourceConflictException;
 import raisetech.student.management.exception.ResourceNotFoundException;
@@ -436,5 +437,67 @@ class StudentControllerTest {
     mockMvc.perform(MockMvcRequestBuilders.patch("/deleteStudent/" + id))
         .andExpect(status().isConflict())
         .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResourceConflictException));
+  }
+
+  @Test
+  void 受講生コース申し込み状況を受講中に更新ができること() throws Exception {
+    int studentCourseId = 1;
+    when(service.searchStudentCourseById(studentCourseId))
+        .thenReturn(new StudentCourse(1, 1, null, null, 1));
+    when(service.searchStudentCourseStatusByStudentCourseId(studentCourseId))
+        .thenReturn(new StudentCourseStatus(1, 1, "完了"));
+    mockMvc.perform(MockMvcRequestBuilders.patch("/updateStudentCourseStatusInProgress/" + studentCourseId))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).updateStudentCourseStatusInProgress(studentCourseId);
+    verify(service, times(1)).searchStudentCourseById(studentCourseId);
+    verify(service, times(1)).searchStudentCourseStatusByStudentCourseId(studentCourseId);
+  }
+
+  @Test
+  void 受講生コース申し込み状況を受講中に更新_studentCourseIdが不正な場合の例外処理が適切であること() throws Exception {
+    int studentCourseId = 0;
+    mockMvc.perform(
+            MockMvcRequestBuilders.patch("/updateStudentCourseStatusInProgress/" + studentCourseId))
+        .andExpect(status().isBadRequest())
+        .andExpect(result -> assertTrue(
+            result.getResolvedException() instanceof ConstraintViolationException));
+
+  }
+
+  @Test
+  void 受講生コース申し込み状況を完了に更新ができること() throws Exception {
+    int studentCourseId = 1;
+    when(service.searchStudentCourseStatusByStudentCourseId(studentCourseId))
+        .thenReturn(new StudentCourseStatus(1, 1, "完了"));
+    mockMvc.perform(MockMvcRequestBuilders.patch("/updateStudentCourseStatusCompleted/" + studentCourseId))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).updateStudentCourseStatusCompleted(studentCourseId);
+    verify(service, times(1)).searchStudentCourseStatusByStudentCourseId(studentCourseId);
+  }
+
+  @Test
+  void 受講生コース申し込み状況を完了に更新_studentCourseIdが不正な場合の例外処理が適切であること() throws Exception {
+    int studentCourseId = 0;
+    mockMvc.perform(
+            MockMvcRequestBuilders.patch("/updateStudentCourseStatusCompleted/" + studentCourseId))
+        .andExpect(status().isBadRequest())
+        .andExpect(result -> assertTrue(
+            result.getResolvedException() instanceof ConstraintViolationException));
+  }
+
+  @Test
+  void 受講中の受講生一覧検索ができること() throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/inProgress"))
+        .andExpect(status().isOk());
+    verify(service, times(1)).searchStudentDetailsInProgress();
+  }
+
+  @Test
+  void 仮申し込みの受講生一覧検索ができること() throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/preEnrollment"))
+        .andExpect(status().isOk());
+    verify(service, times(1)).searchStudentDetailsPreEnrollment();
   }
 }
