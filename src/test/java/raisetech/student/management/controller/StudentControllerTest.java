@@ -486,4 +486,18 @@ class StudentControllerTest {
         .andExpect(result -> assertTrue(
             result.getResolvedException() instanceof ConstraintViolationException));
   }
+
+  @Test
+  void 受講中の受講生一覧検索ができること() throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/inProgress"))
+        .andExpect(status().isOk());
+    verify(service, times(1)).searchStudentDetailsInProgress();
+  }
+
+  @Test
+  void 仮申し込みの受講生一覧検索ができること() throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/preEnrollment"))
+        .andExpect(status().isOk());
+    verify(service, times(1)).searchStudentDetailsPreEnrollment();
+  }
 }

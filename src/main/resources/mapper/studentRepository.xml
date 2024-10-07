@@ -77,4 +77,12 @@
   <update id="updateStudentCourse" parameterType="raisetech.student.management.data.StudentCourse">
     UPDATE student_courses SET student_id = #{studentId}, start_date = #{startDate}, end_due_date = #{endDueDate}, course_id = #{courseId} WHERE id = #{id}
   </update>
+<!-- 仮申し込みの受講生コース申し込み状況を全件検索 -->
+  <select id="searchStudentCourseStatusesPreEnrollment" resultType="raisetech.student.management.data.StudentCourseStatus">
+    SELECT * FROM student_course_statuses WHERE status = '仮申し込み'
+  </select>
+<!-- 受講中の受講生コース申し込み状況を全件検索 -->
+  <select id="searchStudentCourseStatusesInProgress" resultType="raisetech.student.management.data.StudentCourseStatus">
+    SELECT * FROM student_course_statuses WHERE status = '受講中'
+  </select>
 </mapper>

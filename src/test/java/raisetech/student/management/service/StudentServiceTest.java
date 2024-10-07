@@ -398,4 +398,40 @@ class StudentServiceTest {
     assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentCourseStatusByStudentCourseId(studentCourseId));
   }
 
+  @Test
+  void 受講中のコースを含む受講生詳細の全件検索_リポジトリの処理が適切に呼び出せること() {
+    // 事前準備
+    List<Student> students = new ArrayList<>();
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    List<StudentCourseStatus> studentCourseStatuses = new ArrayList<>();
+    Mockito.when(repository.searchStudents()).thenReturn(students);
+    Mockito.when(repository.searchStudentCourses()).thenReturn(studentCourses);
+    Mockito.when(repository.searchStudentCourseStatusesInProgress()).thenReturn(studentCourseStatuses);
+    // 実行
+    List<StudentDetail> actual = sut.searchStudentDetailsInProgress();
+    // 検証
+    Mockito.verify(repository, Mockito.times(1)).searchStudents();
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourses();
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseStatusesInProgress();
+    Mockito.verify(converter, Mockito.times(1)).convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatuses);
+  }
+
+  @Test
+  void 仮申し込みのコースを含む受講生詳細の全件検索_リポジトリの処理が適切に呼び出せること() {
+    // 事前準備
+    List<Student> students = new ArrayList<>();
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    List<StudentCourseStatus> studentCourseStatuses = new ArrayList<>();
+    Mockito.when(repository.searchStudents()).thenReturn(students);
+    Mockito.when(repository.searchStudentCourses()).thenReturn(studentCourses);
+    Mockito.when(repository.searchStudentCourseStatusesPreEnrollment()).thenReturn(studentCourseStatuses);
+    // 実行
+    List<StudentDetail> actual = sut.searchStudentDetailsPreEnrollment();
+    // 検証
+    Mockito.verify(repository, Mockito.times(1)).searchStudents();
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourses();
+    Mockito.verify(repository, Mockito.times(1)).searchStudentCourseStatusesPreEnrollment();
+    Mockito.verify(converter, Mockito.times(1)).convertStudentDetailsWithStatus(students, studentCourses, studentCourseStatuses);
+  }
+
 }

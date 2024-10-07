@@ -134,5 +134,19 @@ public interface StudentRepository {
    * @param studentCourse
    */
   void updateStudentCourse(StudentCourse studentCourse);
+
+  /**
+   * 仮申し込みの受講生コース申し込み状況を全件検索
+   * @return 仮申し込みの受講生コース申し込み状況一覧
+   */
+  List<StudentCourseStatus> searchStudentCourseStatusesPreEnrollment();
+
+  /**
+   * 受講中の受講生コース申し込み状況を全件検索
+   * @return 受講中の受講生コース申し込み状況一覧
+   */
+  List<StudentCourseStatus> searchStudentCourseStatusesInProgress();
+
+
 }
 

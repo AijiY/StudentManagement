@@ -236,4 +236,25 @@ class StudentRepositoryTest {
         .ignoringFields("startDate", "endDueDate")
         .isEqualTo(original);
   }
+
+  @Test
+  void 仮申し込みの受講生コース情報の申し込み状況を全件検索ができること_情報が適切であること() {
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatusesPreEnrollment();
+    List<StudentCourseStatus> expected = List.of(
+        new StudentCourseStatus(5, 5, "仮申し込み")
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+  }
+
+  @Test
+  void 受講中の受講生コース情報の申し込み状況を全件検索ができること_情報が適切であること() {
+    List<StudentCourseStatus> actual = sut.searchStudentCourseStatusesInProgress();
+    List<StudentCourseStatus> expected = List.of(
+        new StudentCourseStatus(1, 1, "受講中"),
+        new StudentCourseStatus(2, 2, "受講中"),
+        new StudentCourseStatus(3, 3, "受講中"),
+        new StudentCourseStatus(4, 4, "受講中")
+    );
+    assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+  }
 }
