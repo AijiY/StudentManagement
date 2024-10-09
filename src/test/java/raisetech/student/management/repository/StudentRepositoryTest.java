@@ -184,7 +184,7 @@ class StudentRepositoryTest {
 
   @Test
   void 受講生コース情報の申し込み状況が新規登録できること_登録前後で件数が1件増えていること() {
-    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(100);
+    StudentCourseStatus studentCourseStatus = new StudentCourseStatus(7);
     int countPresentStudentCourseStatuses = sut.searchStudentCourseStatuses().size();
     sut.insertStudentCourseStatus(studentCourseStatus);
     List<StudentCourseStatus> actual = sut.searchStudentCourseStatuses();
