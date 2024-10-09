@@ -20,7 +20,8 @@ INSERT INTO student_courses (student_id, start_date, end_due_date, course_id) VA
 (2, '2024-01-01', '2024-04-25', 3),
 (3, '2024-01-01', '2024-04-25', 1),
 (4, '2024-01-01', '2024-04-25', 2),
-(5, '2024-01-01', '2024-04-25', 4);
+(5, '2024-01-01', '2024-04-25', 4),
+(5, '2024-01-01', '2024-04-25', 3); -- status挿入テストのためのダミーデータ
 
 -- Insert data into the student_course_statuses table
 INSERT INTO student_course_statuses (student_course_id, status) VALUES

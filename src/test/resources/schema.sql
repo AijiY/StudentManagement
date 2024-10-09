@@ -11,22 +11,25 @@ CREATE TABLE students (
     deleted TINYINT DEFAULT FALSE
 );
 
-CREATE TABLE student_courses (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    student_id INT NOT NULL,
-    start_date DATE,
-    end_due_date DATE,
-    course_id INT NOT NULL
-);
-
 CREATE TABLE courses (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
     price INT
 );
 
+CREATE TABLE student_courses (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    start_date DATE,
+    end_due_date DATE,
+    course_id INT NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
 CREATE TABLE student_course_statuses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_course_id INT NOT NULL UNIQUE,
-    status VARCHAR(10) NOT NULL
+    status VARCHAR(10) NOT NULL,
+    FOREIGN KEY (student_course_id) REFERENCES student_courses(id) ON DELETE CASCADE
 );
