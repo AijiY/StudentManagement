@@ -15,7 +15,7 @@ on:
 
 env:
   EC2_USER: 'ec2-user'
-  EC2_HOST: 'StudentManagementALB-86954662.ap-northeast-1.elb.amazonaws.com'
+  EC2_HOST: '54.168.99.63'
   SRC_PATH: 'build/libs/*.jar'
   DST_PATH: '/home/ec2-user/app.jar'
 
