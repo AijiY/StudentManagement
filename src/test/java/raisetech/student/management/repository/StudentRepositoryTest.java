@@ -45,7 +45,8 @@ class StudentRepositoryTest {
         new StudentCourse(3, 2, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 3),
         new StudentCourse(4, 3, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 1),
         new StudentCourse(5, 4, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 2),
-        new StudentCourse(6, 5, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 4)
+        new StudentCourse(6, 5, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 4),
+        new StudentCourse(7, 5, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 4, 25), 3)
     );
 
     assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
