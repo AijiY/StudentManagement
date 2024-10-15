@@ -15,7 +15,7 @@ on:
 
 env:
   EC2_USER: 'ec2-user'
-  EC2_HOST: '54.168.99.63'
+  EC2_HOST: '18.182.54.252'
   SRC_PATH: 'build/libs/*.jar'
   DST_PATH: '/home/ec2-user/app.jar'
 

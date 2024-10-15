@@ -188,6 +188,7 @@ public class StudentController {
    * 受講中の受講生一覧検索
    * @return 受講中の受講生詳細一覧
    */
+  @Operation(summary = "受講中の受講生一覧検索", description = "受講中の受講生情報を取得します")
   @GetMapping("/students/inProgress")
   public List<StudentDetail> getStudentsInProgress() {
     List<StudentDetail> studentDetails = service.searchStudentDetailsInProgress();
@@ -198,6 +199,7 @@ public class StudentController {
    * 仮申し込みの受講生一覧検索
    * @return 仮申し込みの受講生詳細一覧
    */
+  @Operation(summary = "仮申し込みの受講生一覧検索", description = "仮申し込みの受講生情報を取得します")
   @GetMapping("/students/preEnrollment")
   public List<StudentDetail> getStudentsPreEnrollment() {
     List<StudentDetail> studentDetails = service.searchStudentDetailsPreEnrollment();

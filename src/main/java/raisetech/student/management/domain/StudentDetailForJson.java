@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Schema(description = "受講生情報を登録するためのクラス")
+@Schema(description = "受講生情報と初期コースを登録するためのクラス")
 @AllArgsConstructor
 @Getter
 public class StudentDetailForJson {
